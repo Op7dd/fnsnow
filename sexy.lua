@@ -46,6 +46,36 @@ button.MouseButton1Click:Connect(function()
     print("Voze crico nu butau du leumeusobrinio")
     end)
 
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "ToggleUI"
+toggleButton.Size = UDim2.new(0, 120, 0, 40)
+toggleButton.Position = UDim2.new(0, 10, 0.5, -20)
+toggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+toggleButton.Text = "Abridu"
+toggleButton.TextColor3 = Color3.fromRGB(255, 0, 255)
+toggleButton.TextSize = 16
+toggleButton.Font = Enum.Font.SourceSansBold
+toggleButton.Parent = screenGui
+
+local uiAberta = true
+
+toggleButton.MouseButton1Click:Connect(function()
+    uiAberta = not uiAberta
+
+    screenGui.Enabled = uiAberta
+
+    if uiAberta then
+        toggleButton.Text = "desabridu"
+    else
+        toggleButton.Text = "Abrir rego do stebi"
+        end
+    end)
+
+local toggleGui = Instance.new("ScreenGui")
+toggleGui.Name = "ToggleGui"
+toggleGui.Parent = playerGui
+
+toggleButton.Parent = toggleGui
 
 local dragging
 local dragInput
