@@ -66,10 +66,36 @@ speedBox.FocusLost:Connect(function(enterPressed)
     end
 end)
 
+local infJumpButton = Instance.new("TextButton")
+infJumpButton.Name = "InfJump"
+infJumpButton.Size = UDim2.new(0, 150, 0, 50)
+infJumpButton.Position = UDim2.new(0, 10, 0, 120)
+infJumpButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+infJumpButton.Text = "Infinite Jump: OFF"
+infJumpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+infJumpButton.TextSize = 16
+infJumpButton.Font = Enum.Font.SourceSansBold
+infJumpButton.Parent = frame
+
+local infJumpAtivo = false
+
+infJumpButton.MouseButton1Click:Connect(function()
+    infJumpAtivo = not infJumpAtivo
+
+    if infJumpAtivo then
+        infJumpButton.Text = "Infinite jump: ON"
+        print("Infinite jump ligado")
+    else
+        infJumpButton.Text = "Infinite Jump: OFF"
+        print("Infinite Jump Desligado")
+    end
+end)
+
+
 local toggleButton = Instance.new("TextButton")
 toggleButton.Name = "ToggleUI"
 toggleButton.Size = UDim2.new(0, 120, 0, 40)
-toggleButton.Position = UDim2.new(0, 10, 0, 120)
+toggleButton.Position = UDim2.new(0, 10, 0, 180)
 toggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 toggleButton.Text = "Abridu"
 toggleButton.TextColor3 = Color3.fromRGB(255, 0, 255)
@@ -137,5 +163,16 @@ end)
 UserInputService.InputChanged:Connect(function(input)
     if input == dragInput and dragging then
         update(input)
+    end
+end)
+
+UserInputService.JumpRequest:Connect(function()
+    if infJumpAtivo then
+        local character = player.Character or player.CharacterAdded:Wait()
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
     end
 end)
