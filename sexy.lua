@@ -43,12 +43,19 @@ button.TextSize = 17
 button.Font = Enum.Font.SourceSansBold
 button.Parent = frame
 button.MouseButton1Click:Connect(function()
-    local character = player.Character or player.CharacterAdded:wait()
-    local humanoid = character:WaitForChild("Humanoid")
+  local character = player.Character or player.CharacterAdded:Wait()
+  local humanoid = character:WaitForChild("Humanoid")
 
-    humanoid.Walkspeed = 30
+  local speedAtiva = false
+  speedAtiva = not speedAtiva
 
-    print("speed aumentada para 30 neguin malandro")
+  if speedAtiva then
+    humanoid.WalkSpeed = 30
+    print("TA LIGADO WS COMEDIA")
+  else
+    humanoid.WalkSpeed = 16
+    print("num ta ligado mais panaca")
+  end
 end)
 
 
