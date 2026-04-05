@@ -43,8 +43,14 @@ button.TextSize = 17
 button.Font = Enum.Font.SourceSansBold
 button.Parent = frame
 button.MouseButton1Click:Connect(function()
-    print("Voze crico nu butau du leumeusobrinio")
-    end)
+    local character = player.Character or player.CharacterAdded:wait()
+    local humanoid = character:WaitForChild("humanoid")
+
+    humanoid.walkspeed = 30
+
+    print("speed aumentada para 30 neguin malandro")
+end)
+
 
 local toggleButton = Instance.new("TextButton")
 toggleButton.Name = "ToggleUI"
