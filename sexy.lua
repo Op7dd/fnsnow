@@ -1,3 +1,4 @@
+local UserInputService = game:GetService("UserInputService")
 local players = game:GetService("Players")
 local player = players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -31,7 +32,7 @@ closeButton.MouseButton1Click:Connect(function()
 end)
 
 local dragging
-local dragIntup
+local dragInput
 local dragStart
 local startPos
 
@@ -42,13 +43,13 @@ local function update(input)
 end
 
 frame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType..MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true         
         dragStart = input.Position
         startPos = frame.Position
 
         input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserinputState.End then
+            if input.UserInputState == Enum.UserInputState.End then
                 dragging = false
             end
         end)
@@ -61,7 +62,7 @@ frame.InputChanged:Connect(function(input)
     end
 end)
 
-userInputService.InputChanged:Connect(function(input)
+UserInputService.InputChanged:Connect(function(input)
     if input == dragInput and dragging then
         update(input)
     end
