@@ -35,7 +35,7 @@ end)
 local button = Instance.new("TextButton")
 button.Name = "Butaum du emicoatro"
 button.Size = UDim2.new(0, 150, 0, 50)
-button.Position = UDim2.new(0.5, 10, 0, -60)
+button.Position = UDim2.new(, 10, 0, -60)
 button.BackgroundColor3 = Color3.fromRGB(255, 0, 255)
 button.Text = "Cor du leumeusobrinio"
 button.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -49,7 +49,7 @@ button.MouseButton1Click:Connect(function()
 local toggleButton = Instance.new("TextButton")
 toggleButton.Name = "ToggleUI"
 toggleButton.Size = UDim2.new(0, 120, 0, 40)
-toggleButton.Position = UDim2.new(0, 10, 0.5, -20)
+toggleButton.Position = UDim2.new(0, 10, 0, 60)
 toggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 toggleButton.Text = "Abridu"
 toggleButton.TextColor3 = Color3.fromRGB(255, 0, 255)
