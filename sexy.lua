@@ -77,6 +77,12 @@ toggleGui.Parent = playerGui
 
 toggleButton.Parent = toggleGui
 
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+    toggleGui:Destroy()
+end)
+
+
 local dragging
 local dragInput
 local dragStart
