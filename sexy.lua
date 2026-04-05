@@ -12,6 +12,7 @@ frame.Name = "quadrado sexy"
 frame.Size = UDim2.new(0, 300, 0, 300)
 frame.Position = UDim2.new(0.5, -150, 0.5, -150)
 frame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+frame.active = true
 frame.BorderSizePixel = 2
 frame.Parent = screenGui
 
