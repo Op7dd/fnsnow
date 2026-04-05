@@ -32,37 +32,44 @@ closeButton.MouseButton1Click:Connect(function()
     print("UI Gozada com sucesso")
 end)
 
-local button = Instance.new("TextButton")
-button.Name = "Butaum du emicoatro"
-button.Size = UDim2.new(0, 150, 0, 50)
-button.Position = UDim2.new(0, 10, 0, 60)
-button.BackgroundColor3 = Color3.fromRGB(255, 0, 255)
-button.Text = "butaum du leumeusobrinio"
-button.TextColor3 = Color3.fromRGB(255, 255, 255)
-button.TextSize = 17
-button.Font = Enum.Font.SourceSansBold
-button.Parent = frame
-button.MouseButton1Click:Connect(function()
-  local character = player.Character or player.CharacterAdded:Wait()
-  local humanoid = character:WaitForChild("Humanoid")
+local speedAtiva = false
 
-  local speedAtiva = false
-  speedAtiva = not speedAtiva
+local speedBox = Instance.new("TextBox")
+speedBox.Name = "SpeedInput"
+speedBox.Size = UDim2.new(0, 150, 0, 50)
+speedBox.Position = UDim2.new(0, 10, 0, 60)
+speedBox.BackgroundColor3 = Color3.fromRGB(255, 0, 255)
+speedBox.Text = "choose 0-100"
+speedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedBox.TextSize = 17
+speedBox.Font = Enum.Font.SourceSansBold
+speedBox.ClearTextOnFocus = true
+speedBox.Parent = frame
+speedBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        local character = player.Character or player.CharacterAdded:Wait()
+        local humanoid = character:WaitForChild("Humanoid")
 
-  if speedAtiva then
-    humanoid.WalkSpeed = 30
-    print("TA LIGADO WS COMEDIA")
-  else
-    humanoid.WalkSpeed = 16
-    print("num ta ligado mais panaca")
-  end
+        local numero= tonumber(speedBox.Text)
+
+        if numero then
+            numero = math.clamp(numero, 0, 100)
+
+            humanoid.WalkSpeed = numero
+            speedBox.Text = tostring(numero)
+            
+
+            print("Ws setado para:", numero)
+        else
+            print("valor invalido")
+        end
+    end
 end)
-
 
 local toggleButton = Instance.new("TextButton")
 toggleButton.Name = "ToggleUI"
 toggleButton.Size = UDim2.new(0, 120, 0, 40)
-toggleButton.Position = UDim2.new(0, 10, 0, 60)
+toggleButton.Position = UDim2.new(0, 10, 0, 120)
 toggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 toggleButton.Text = "Abridu"
 toggleButton.TextColor3 = Color3.fromRGB(255, 0, 255)
