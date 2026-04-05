@@ -27,10 +27,6 @@ closeButton.TextSize = 20
 closeButton.Font = Enum.Font.SourceSansBold
 closeButton.Parent = frame
 
-closeButton.MouseButton1Click:Connect(function()
-    screenGui:Destroy()
-    print("UI Gozada com sucesso")
-end)
 
 local speedAtiva = false
 
@@ -91,11 +87,32 @@ infJumpButton.MouseButton1Click:Connect(function()
     end
 end)
 
+local toggleKey = Enum.KeyCode.E
+local esperandoTecla = false
+
+local uiAberta = true
+
+local keyBindButton = Instance.new("TextButton")
+keyBindButton.Size = UDim2.new(0, 150, 0, 40)
+keyBindButton.Position = UDim2.new(0,10, 0, 180)
+keyBindButton.BackgroundColor3 = Color3.fromRGB(80, 0, 80)
+keyBindButton.Text = "Key: E"
+keyBindButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+keyBindButton.Font = Enum.Font.SourceSansBold
+keyBindButton.TextSize = 16
+keyBindButton.Parent = frame
+
+keyBindButton.MouseButton1Click:Connect(function()
+    esperandoTecla = true
+    keyBindButton.Text = "Pressione uma tecla"
+end)
+
+
 
 local toggleButton = Instance.new("TextButton")
 toggleButton.Name = "ToggleUI"
 toggleButton.Size = UDim2.new(0, 120, 0, 40)
-toggleButton.Position = UDim2.new(0, 10, 0, 180)
+toggleButton.Position = UDim2.new(0, 10, 0, 230)
 toggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 toggleButton.Text = "Abridu"
 toggleButton.TextColor3 = Color3.fromRGB(255, 0, 255)
@@ -103,12 +120,12 @@ toggleButton.TextSize = 16
 toggleButton.Font = Enum.Font.SourceSansBold
 toggleButton.Parent = screenGui
 
-local uiAberta = true
+
 
 toggleButton.MouseButton1Click:Connect(function()
     uiAberta = not uiAberta
 
-    screenGui.Enabled = uiAberta
+    frame.Visible = uiAberta
 
     if uiAberta then
         toggleButton.Text = "desabridu"
@@ -124,10 +141,12 @@ toggleGui.Parent = playerGui
 toggleButton.Parent = toggleGui
 
 closeButton.MouseButton1Click:Connect(function()
+    infJumpAtivo = false
+    uiAberta = false
+
     screenGui:Destroy()
     toggleGui:Destroy()
 end)
-
 
 local dragging
 local dragInput
@@ -176,3 +195,27 @@ UserInputService.JumpRequest:Connect(function()
         end
     end
 end)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+
+    if esperandoTecla then
+        if input.UserInputType == Enum.UserInputType.Keyboard then
+            toggleKey = input.KeyCode
+            keyBindButton.Text = "Key: " .. input.KeyCode.Name
+            esperandoTecla = false
+        end
+        return
+    end
+
+    if input.KeyCode == toggleKey and not UserInputService:GetFocusedTextBox() then
+        uiAberta = not uiAberta
+        frame.Visible = uiAberta
+
+        if uiAberta then
+            toggleButton.Text = "desabridu"
+        else
+            toggleButton.Text = "Abrir rego do stebi"
+            end
+        end
+    end)
