@@ -1,3 +1,7 @@
+local RunService = game:GetService("RunService")
+local noclipAtivo = false
+local noclipConnection = noclipAtivo
+
 local UserInputService = game:GetService("UserInputService")
 local players = game:GetService("Players")
 local player = players.LocalPlayer
@@ -107,7 +111,16 @@ keyBindButton.MouseButton1Click:Connect(function()
     keyBindButton.Text = "Pressione uma tecla"
 end)
 
-
+local noclipButton = Instance.new("TextButton")
+noclipButton.Name = "noclipButton"
+noclipButton.Size = UDim2.new(0, 120, 0, 50)
+noclipButton.Position = UDim2.new(0.5, 5, 0, 120)
+noclipButton.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+noclipButton.Text = "Nouclipi du meusobrinio off"
+noclipButton.TextColor3 = Color3.fromRGB(255, 255 ,255)
+noclipButton.TextSize = 16
+noclipButton.Font = Enum.Font.SourceSansBold
+noclipButton.Parent = frame
 
 local toggleButton = Instance.new("TextButton")
 toggleButton.Name = "ToggleUI"
@@ -219,3 +232,33 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             end
         end
     end)
+
+
+noclipButton.MouseButton1Click:Connect(function()
+    noclipAtivo = not noclipAtivo
+
+    if noclipAtivo then
+        noclipButton.Text = "nocripi du leumeusobrinio ON"
+        noclipButton.BackgroundColor3 = Color3.fromRGB(0,255,120)
+
+        noclipConnection = RunService.Stepped:Connect(function()
+            if player.Character then
+                for _, part in pairs(player.Character:GetDescendants()) do
+                    if part:IsA("BasePart") and part.CanCollide == true then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+        print("NUcripi ativadu")
+    else
+        noclipButton.Text = "Noclip OFIUM"
+        noclipButton.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+
+        if noclipConnection then
+            noclipConnection:Disconnect()
+            noclipConnection = nil
+        end
+        print("nocripi disativado")
+    end
+end)
