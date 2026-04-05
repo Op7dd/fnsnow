@@ -316,7 +316,7 @@ flyButton.MouseButton1Click:Connect(function()
     local hum = character:FindFirstChildOfClass("Humanoid")
 
     if flying then
-        -- Cria as forças físicas para sustentar o voo
+       
         local bv = Instance.new("BodyVelocity")
         bv.Name = "FlyVelocity"
         bv.MaxForce = Vector3.new(1e8, 1e8, 1e8)
@@ -330,9 +330,9 @@ flyButton.MouseButton1Click:Connect(function()
         bg.CFrame = root.CFrame
         bg.Parent = root
 
-        if hum then hum.PlatformStand = true end -- Desativa o "andar" no chão
+        if hum then hum.PlatformStand = true end 
 
-        -- Loop que lê as teclas e move o personagem
+        
         flyLoop = RunService.RenderStepped:Connect(function()
             local cam = workspace.CurrentCamera
             local direction = Vector3.new(0, 0, 0)
@@ -342,11 +342,11 @@ flyButton.MouseButton1Click:Connect(function()
             if UserInputService:IsKeyDown(Enum.KeyCode.A) then direction = direction - cam.CFrame.RightVector end
             if UserInputService:IsKeyDown(Enum.KeyCode.D) then direction = direction + cam.CFrame.RightVector end
 
-            bv.Velocity = direction * speedFly -- Usa a sua variável speedFly customizável
+            bv.Velocity = direction * speedFly 
             bg.CFrame = cam.CFrame
         end)
     else
-        -- Limpa as forças quando desliga o Fly
+        
         if flyLoop then flyLoop:Disconnect() end
         if root:FindFirstChild("FlyVelocity") then root.FlyVelocity:Destroy() end
         if root:FindFirstChild("FlyGyro") then root.FlyGyro:Destroy() end
