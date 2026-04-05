@@ -35,7 +35,7 @@ end)
 local button = Instance.new("TextButton")
 button.Name = "Butaum du emicoatro"
 button.Size = UDim2.new(0, 150, 0, 50)
-button.Position = UDim2.new(, 10, 0, -60)
+button.Position = UDim2.new(0, 10, 0, -60)
 button.BackgroundColor3 = Color3.fromRGB(255, 0, 255)
 button.Text = "Cor du leumeusobrinio"
 button.TextColor3 = Color3.fromRGB(255, 255, 255)
