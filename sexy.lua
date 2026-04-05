@@ -44,9 +44,9 @@ button.Font = Enum.Font.SourceSansBold
 button.Parent = frame
 button.MouseButton1Click:Connect(function()
     local character = player.Character or player.CharacterAdded:wait()
-    local humanoid = character:WaitForChild("humanoid")
+    local humanoid = character:WaitForChild("Humanoid")
 
-    humanoid.walkspeed = 30
+    humanoid.Walkspeed = 30
 
     print("speed aumentada para 30 neguin malandro")
 end)
