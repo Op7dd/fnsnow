@@ -32,6 +32,21 @@ closeButton.MouseButton1Click:Connect(function()
     print("UI Gozada com sucesso")
 end)
 
+local button = Instance.new("TextButton")
+button.Name = "Butaum du emicoatro"
+button.Size = UDim2.new(0, 150, 0, 50)
+button.Position = UDim2.new(0.5, -75, 0.5, -25)
+button.BackgroundColor3 = Color3.fromRGB(255, 0, 255)
+button.Text = "Cor du leumeusobrinio"
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.TextSize = 17
+button.Font = Enum.Font.SourceSansBold
+button.Parent = frame
+button.MouseButton1Click:Connect(function()
+    print("Voze crico nu butau du leumeusobrinio")
+    end)
+
+
 local dragging
 local dragInput
 local dragStart
