@@ -1,6 +1,11 @@
 local RunService = game:GetService("RunService")
 local noclipAtivo = false
-local noclipConnection = noclipAtivo
+local noclipConnection = nil
+
+local flying = false
+local speedFly = 50
+local flyLoop = nil
+
 
 local UserInputService = game:GetService("UserInputService")
 local players = game:GetService("Players")
@@ -13,7 +18,7 @@ screenGui.Parent = playerGui
 
 local frame = Instance.new("Frame")
 frame.Name = "quadrado sexy"
-frame.Size = UDim2.new(0, 300, 0, 300)
+frame.Size = UDim2.new(0, 300, 0, 450)
 frame.Position = UDim2.new(0.5, -150, 0.5, -150)
 frame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 frame.Active = true
@@ -121,6 +126,43 @@ noclipButton.TextColor3 = Color3.fromRGB(255, 255 ,255)
 noclipButton.TextSize = 16
 noclipButton.Font = Enum.Font.SourceSansBold
 noclipButton.Parent = frame
+
+local flySpeedBox = Instance.new("TextBox")
+flySpeedBox.Name = "FlySpeedInput"
+flySpeedBox.Size = UDim2.new(0, 135, 0, 40)
+flySpeedBox.Position = UDim2.new(0.5, 5, 0, 180)
+flySpeedBox.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
+flySpeedBox.Text = "Fly speed: 50"
+flySpeedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+flySpeedBox.Font = Enum.Font.SourceSansBold
+flySpeedBox.TextSize = 14
+flySpeedBox.Parent = frame
+
+flySpeedBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        local num = tonumber(flySpeedBox.Text:match("%d+"))
+        if num then
+            speedFly = math.clamp(num, 1, 500)
+            flySpeedBox.Text = "Fly Speed: " .. tostring(speedFly)
+        else
+            flySpeedBox.Text =  "Fly Speed: 50"
+            speedFly = 50
+        end
+    end
+end)
+
+local flyButton = Instance.new("TextButton")
+flyButton.Name = "FlyButton"
+flyButton.Size = UDim2.new(0, 135, 0, 40)
+flyButton.Position = UDim2.new(0.5, 5, 0, 230)
+flyButton.BackgroundColor3 = Color3.fromRGB(255, 150, 0)
+flyButton.Text = "Fly: OFF"
+flyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+flyButton.Font = Enum.Font.SourceSansBold
+flyButton.TextSize = 16
+flyButton.Parent = frame
+
+
 
 local toggleButton = Instance.new("TextButton")
 toggleButton.Name = "ToggleUI"
@@ -260,5 +302,54 @@ noclipButton.MouseButton1Click:Connect(function()
             noclipConnection = nil
         end
         print("nocripi disativado")
+    end
+end)
+
+flyButton.MouseButton1Click:Connect(function()
+    flying = not flying
+    flyButton.Text = flying and "Fly: ON" or "Fly: OFF"
+    flyButton.BackgroundColor3 = flying and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 150, 0)
+
+    local character = player.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    local root = character.HumanoidRootPart
+    local hum = character:FindFirstChildOfClass("Humanoid")
+
+    if flying then
+        -- Cria as forças físicas para sustentar o voo
+        local bv = Instance.new("BodyVelocity")
+        bv.Name = "FlyVelocity"
+        bv.MaxForce = Vector3.new(1e8, 1e8, 1e8)
+        bv.Velocity = Vector3.new(0, 0, 0)
+        bv.Parent = root
+
+        local bg = Instance.new("BodyGyro")
+        bg.Name = "FlyGyro"
+        bg.MaxTorque = Vector3.new(1e8, 1e8, 1e8)
+        bg.P = 9000
+        bg.CFrame = root.CFrame
+        bg.Parent = root
+
+        if hum then hum.PlatformStand = true end -- Desativa o "andar" no chão
+
+        -- Loop que lê as teclas e move o personagem
+        flyLoop = RunService.RenderStepped:Connect(function()
+            local cam = workspace.CurrentCamera
+            local direction = Vector3.new(0, 0, 0)
+            
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then direction = direction + cam.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.S) then direction = direction - cam.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.A) then direction = direction - cam.CFrame.RightVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) then direction = direction + cam.CFrame.RightVector end
+
+            bv.Velocity = direction * speedFly -- Usa a sua variável speedFly customizável
+            bg.CFrame = cam.CFrame
+        end)
+    else
+        -- Limpa as forças quando desliga o Fly
+        if flyLoop then flyLoop:Disconnect() end
+        if root:FindFirstChild("FlyVelocity") then root.FlyVelocity:Destroy() end
+        if root:FindFirstChild("FlyGyro") then root.FlyGyro:Destroy() end
+        if hum then hum.PlatformStand = false end
     end
 end)
