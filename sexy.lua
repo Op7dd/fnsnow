@@ -12,7 +12,7 @@ frame.Name = "quadrado sexy"
 frame.Size = UDim2.new(0, 300, 0, 300)
 frame.Position = UDim2.new(0.5, -150, 0.5, -150)
 frame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-frame.active = true
+frame.Active = true
 frame.BorderSizePixel = 2
 frame.Parent = screenGui
 
@@ -40,7 +40,7 @@ local startPos
 local function update(input)
     local delta = input.Position - dragStart
     
-    frame.Position = UDim2.new(startPost.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 end
 
 frame.InputBegan:Connect(function(input)
