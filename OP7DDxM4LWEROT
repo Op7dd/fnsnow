@@ -138,6 +138,8 @@ local alvoParte = "Head"
 local teclaAbrir = Enum.KeyCode.E
 local menuVisivel = true
 local esperandoTecla = false
+local noRecoilAtivo = false
+
 
 -- --- ABA MOVIMENTAÇÃO ---
 local speedBox = Instance.new("TextBox")
@@ -192,6 +194,20 @@ aimBtn.MouseButton1Click:Connect(function()
     aimBtn.Text = aimbotAtivo and "Aimbot: ON" or "Aimbot: OFF"
     if fovCirculo then fovCirculo.Visible = aimbotAtivo end
 end)
+
+local recoilBtn = Instance.new("TextButton")
+recoilBtn.Size = UDim2.new(0.9, 0, 0, 45)
+recoilBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+recoilBtn.Text = "No Recoil: OFF"
+recoilBtn.TextColor3 = Color3.new(1, 1, 1)
+recoilBtn.Parent = abaDiv
+Instance.new("UICorner", recoilBtn)
+
+recoilBtn.MouseButton1Click:Connect(function()
+    noRecoilAtivo = not noRecoilAtivo
+    recoilBtn.Text = noRecoilAtivo and "No Recoil: ON" or "No  Recoil: OFF "
+end)
+
 
 -- CUSTOMIZAR PARTE DO ALVO
 local targetBtn = Instance.new("TextButton")
@@ -333,4 +349,14 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+end)
+
+RunService.RenderStepped:Connect(function()
+    --TE AMO M4 TE AMO M4 TE AMO M4 TE AMO M4
+
+    if noRecoilAtivo and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
+        local cam = workspace.CurrentCamera
+
+        cam.CFrame = cam.CFrame * CFrame.Angles(0, 0, 0)
+    end
 end)
