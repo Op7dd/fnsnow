@@ -36,9 +36,18 @@ local function OpenKeySystem()
     Submit.BackgroundColor3 = Color3.fromRGB(64,64,64)
     Submit.TextColor3 = Color3.new(255, 255, 255)
 
-    Submit.MouseButton1Click:Connect(function()
+  Submit.MouseButton1Click:Connect(function()
         if TextBox.Text == KeySystem.Key then
             KeySystem.Status = true
+            
+            -- NOTIFICAÇÃO DE SUCESSO
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "Acesso Permitido",
+                Text = "Você acessou o Sexy Hub com sucesso, seja bem-vindo: " .. game.Players.LocalPlayer.Name,
+                Duration = 5,
+                Icon = "rbxassetid://12296859791" -- Ícone opcional de check
+            })
+
             ScreenGui:Destroy()
         else
             TextBox.Text = ""
