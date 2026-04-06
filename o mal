@@ -1,3 +1,5 @@
+--SCRIPT OFICIAL POR Feito Por :OP7DD E M4LWEROT
+
 local KeySystem = {
     Enabled = true,
     Key = nil, -- será carregada do arquivo externo
@@ -316,7 +318,7 @@ UserInputService.InputBegan:Connect(function(input, gpe)
     end
 end)
 
--- Arrastar UI
+-- Arrastar UI 
 local dragging, dragInput, dragStart, startPos
 mainFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
