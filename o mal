@@ -1,1 +1,326 @@
-local screenGui = instante.new
+local players = game:GetService("Players")
+local player = players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ModernUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 450, 0, 350)
+mainFrame.Position = UDim2.new(0.5, -255, 0.5, -175)
+mainFrame.BackgroundColor3 = Color3.fromRGB(141, 7, 7)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 15)
+corner.Parent = mainFrame
+
+local sidebar = Instance.new("Frame")
+sidebar.Size = UDim2.new(0, 120, 1, 0)
+sidebar.BackgroundColor3 = Color3.fromRGB(100, 6, 6)
+sidebar.BorderSizePixel = 0
+sidebar.Parent = mainFrame
+
+local sidebarCorner = Instance.new("UICorner")
+sidebarCorner.CornerRadius = UDim.new (0, 15)
+sidebarCorner.Parent = sidebar
+
+local sidebarLayout = Instance.new("UIListLayout")
+sidebarLayout.Padding = UDim.new(0, 5)
+sidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+sidebarLayout.Parent = sidebar
+
+local contentHolder = Instance.new("Frame")
+contentHolder.Size = UDim2.new(1, -130, 1, -10)
+contentHolder.Position = UDim2.new(0, 125, 0, 5)
+contentHolder.BackgroundTransparency = 1
+contentHolder.Parent = mainFrame
+
+local abas = {}
+
+local function novaAba(nome)
+
+    local frameAba = Instance.new("ScrollingFrame")
+    frameAba.Size = UDim2.new(1, 0, 1, 0)
+    frameAba.BackgroundTransparency = 1
+    frameAba.Visible = false
+    frameAba.ScrollBarThickness = 2
+    frameAba.CanvasSize = UDim2.new(0, 0, 2, 0)
+    frameAba.Parent = contentHolder
+
+    local layout = Instance.new("UIListLayout")
+    layout.Padding = UDim.new(0, 10)
+    layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    layout.Parent = frameAba
+
+    local btnAba = Instance.new("TextButton")
+    btnAba.Size = UDim2.new(0.9, 0, 0, 40)
+    btnAba.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+    btnAba.Text = nome
+    btnAba.TextColor3 = Color3.new(1, 1, 1)
+    btnAba.Font = Enum.Font.SourceSansBold
+    btnAba.TextSize = 16
+    btnAba.Parent = sidebar
+    Instance.new("UICorner", btnAba).CornerRadius = UDim.new(0, 8)
+
+    btnAba.MouseButton1Click:Connect(function()
+        for _, v in pairs(abas) do v.Visible = false end
+        frameAba.Visible = true
+    end)
+
+    abas[nome] = frameAba
+    return frameAba
+end
+
+local abaMov = novaAba("Movimentação")
+local abaDiv = novaAba("Diversos")
+local abaConfig = novaAba("Configuração")
+
+abaMov.Visible = true
+
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local noclipAtivo = false
+local noclipConnection = nil 
+local flying = false
+local flySpeed = 50
+local flyLoop = nil
+
+local speedBox = Instance.new("TextBox")
+speedBox.Size = UDim2.new(0.9, 0, 0, 45)
+speedBox.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+speedBox.Text = "Velocidade: 16"
+speedBox.TextColor3 = Color3.new(1, 1, 1)
+speedBox.Font = Enum.Font.SourceSansBold
+speedBox.TextSize = 16
+speedBox.Parent = abaMov
+Instance.new("UICorner", speedBox)
+
+speedBox.FocusLost:Connect(function(enter)
+    if enter then 
+        local num = tonumber(speedBox.Text:match("%d+"))
+        if num and player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.WalkSpeed = num
+        end
+    end
+end)
+
+local noclipBtn = Instance.new("TextButton")
+noclipBtn.Size = UDim2.new(0.9, 0, 0, 45)
+noclipBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+noclipBtn.Text = "Noclip: OFF"
+noclipBtn.TextColor3 = Color3.new(1, 1, 1)
+noclipBtn.Font = Enum.Font.SourceSansBold
+noclipBtn.TextSize = 16
+noclipBtn.Parent = abaMov
+Instance.new("UICorner", noclipBtn)
+
+noclipBtn.MouseButton1Click:Connect(function()
+    noclipAtivo = not noclipAtivo
+    noclipBtn.Text = noclipAtivo and "Noclip: ON" or "Noclip: OFF"
+    if noclipAtivo then
+        noclipConnection = RunService.Stepped:Connect(function()
+            if player.Character then
+                for _, part in pairs(player.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then part.CanCollide = false end
+                end
+            end
+        end)
+    else
+        if noclipConnection then noclipConnection:Disconnect() end
+    end
+end)
+
+local flyBtn = Instance.new("TextButton")
+flyBtn.Size = UDim2.new(0.9, 0, 0, 45)
+flyBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+flyBtn.Text = "Fly: OFF"
+flyBtn.TextColor3 = Color3.new(1, 1, 1)
+flyBtn.Font = Enum.Font.SourceSansBold
+flyBtn.TextSize = 16
+flyBtn.Parent = abaMov
+Instance.new("UICorner", flyBtn)
+
+flyBtn.MouseButton1Click:Connect(function()
+    flying = not flying
+    flyBtn.Text = flying and "Fly: ON" or "Fly: OFF"
+    
+    local char = player.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local root = char.HumanoidRootPart
+    
+    if flying then
+        local bv = Instance.new("BodyVelocity", root)
+        bv.Name = "FlyVel"
+        bv.MaxForce = Vector3.new(1e8, 1e8, 1e8)
+        
+        local bg = Instance.new("BodyGyro", root)
+        bg.Name = "FlyGyro"
+        bg.MaxTorque = Vector3.new(1e8, 1e8, 1e8)
+        
+        flyLoop = RunService.RenderStepped:Connect(function()
+            local cam = workspace.CurrentCamera
+            local dir = Vector3.new(0,0,0)
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir = dir + cam.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir = dir - cam.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir = dir - cam.CFrame.RightVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir = dir + cam.CFrame.RightVector end
+            bv.Velocity = dir * flySpeed
+            bg.CFrame = cam.CFrame
+        end)
+    else
+        if flyLoop then flyLoop:Disconnect() end
+        if root:FindFirstChild("FlyVel") then root.FlyVel:Destroy() end
+        if root:FindFirstChild("FlyGyro") then root.FlyGyro:Destroy() end
+    end
+end)
+
+local infJumpAtivo = false
+
+
+local jumpBtn = Instance.new("TextButton")
+jumpBtn.Size = UDim2.new(0.9, 0, 0, 45)
+jumpBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+jumpBtn.Text = "Inf. Jump: OFF"
+jumpBtn.TextColor3 = Color3.new(1, 1, 1)
+jumpBtn.Font = Enum.Font.SourceSansBold
+jumpBtn.TextSize = 16
+jumpBtn.Parent = abaDiv -- Colocando na aba Diversos
+Instance.new("UICorner", jumpBtn)
+
+jumpBtn.MouseButton1Click:Connect(function()
+    infJumpAtivo = not infJumpAtivo
+    jumpBtn.Text = infJumpAtivo and "Inf. Jump: ON" or "Inf. Jump: OFF"
+end)
+
+
+UserInputService.JumpRequest:Connect(function()
+    if infJumpAtivo then
+        local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+
+local delToolBtn = Instance.new("TextButton")
+delToolBtn.Size = UDim2.new(0.9, 0, 0, 45)
+delToolBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+delToolBtn.Text = "Ganhar Deletador"
+delToolBtn.TextColor3 = Color3.new(1, 1, 1)
+delToolBtn.Font = Enum.Font.SourceSansBold
+delToolBtn.TextSize = 16
+delToolBtn.Parent = abaDiv
+Instance.new("UICorner", delToolBtn)
+
+delToolBtn.MouseButton1Click:Connect(function()
+    local tool = Instance.new("Tool")
+    tool.Name = "Click Deletar"
+    tool.RequiresHandle = true
+    
+    local handle = Instance.new("Part")
+    handle.Name = "Handle"
+    handle.Size = Vector3.new(1, 1, 1)
+    handle.Transparency = 0.5
+    handle.BrickColor = BrickColor.new("Bright red")
+    handle.Parent = tool
+    
+    tool.Activated:Connect(function()
+        local target = player:GetMouse().Target
+        if target and target.Name ~= "Baseplate" and target.Name ~= "Terrain" then
+            target:Destroy()
+        end
+    end)
+    
+    tool.Parent = player.Backpack
+end)
+
+local esperandoTecla = false
+local teclaAbrir = Enum.KeyCode.E
+local menuVisivel = true
+
+local keybindBtn = Instance.new("TextButton")
+keybindBtn.Size = UDim2.new(0.9, 0, 0, 45)
+keybindBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+keybindBtn.Text = "Abrir/Fechar: E"
+keybindBtn.TextColor3 = Color3.new(1, 1, 1)
+keybindBtn.Font = Enum.Font.SourceSansBold
+keybindBtn.TextSize = 16
+keybindBtn.Parent = abaConfig
+Instance.new("UICorner", keybindBtn)
+
+keybindBtn.MouseButton1Click:Connect(function()
+    esperandoTecla = true
+    keybindBtn.Text = "Pressione uma tecla..."
+end)
+
+
+local destroyBtn = Instance.new("TextButton")
+destroyBtn.Size = UDim2.new(0.9, 0, 0, 45)
+destroyBtn.BackgroundColor3 = Color3.fromRGB(80, 0, 0)
+destroyBtn.Text = "Close"
+destroyBtn.TextColor3 = Color3.new(1, 1, 1)
+destroyBtn.Font = Enum.Font.SourceSansBold
+destroyBtn.TextSize = 16
+destroyBtn.Parent = abaConfig
+Instance.new("UICorner", destroyBtn)
+
+destroyBtn.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end -- Ignora se você estiver digitando no chat
+    
+    if esperandoTecla then
+        if input.KeyCode ~= Enum.KeyCode.Unknown then
+            teclaAbrir = input.KeyCode
+            keybindBtn.Text = "Abrir/Fechar: " .. teclaAbrir.Name
+            esperandoTecla = false
+        end
+    elseif input.KeyCode == teclaAbrir then
+        menuVisivel = not menuVisivel
+        mainFrame.Visible = menuVisivel
+    end
+end)
+
+
+local dragging, dragInput, dragStart, startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+mainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+mainFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
