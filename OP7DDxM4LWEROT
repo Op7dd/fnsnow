@@ -7,7 +7,7 @@ local KeySystem = {
 }
 
 -- Puxa o arquivo remoto do GitHub
-local url = "https://raw.githubusercontent.com/Malwerot/test1/refs/heads/main/KeyConfig.lua"
+local url = "https://raw.githubusercontent.com/Op7dd/fnsnow/refs/heads/main/Key.lua"
 local code = game:HttpGet(url)
 
 -- Executa o conteúdo do arquivo (que retorna a tabela KeyConfig)
