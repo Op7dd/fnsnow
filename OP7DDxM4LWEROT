@@ -148,6 +148,9 @@ local teclaAbrir = Enum.KeyCode.E
 local menuVisivel = true
 local esperandoTecla = false
 local noRecoilAtivo = false
+local hitboxAtiva = false
+local hitboxTamanho = 2
+
 
 
 -- --- ABA MOVIMENTAÇÃO ---
@@ -215,6 +218,36 @@ Instance.new("UICorner", recoilBtn)
 recoilBtn.MouseButton1Click:Connect(function()
     noRecoilAtivo = not noRecoilAtivo
     recoilBtn.Text = noRecoilAtivo and "No Recoil: ON" or "No  Recoil: OFF "
+end)
+
+-- Botão de Alternar Hitbox
+local hbBtn = Instance.new("TextButton", abaDiv)
+hbBtn.Size = UDim2.new(0.9, 0, 0, 45)
+hbBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+hbBtn.Text = "Hitbox: OFF"
+hbBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", hbBtn)
+
+-- Caixa de Texto para o Tamanho
+local hbBox = Instance.new("TextBox", abaDiv)
+hbBox.Size = UDim2.new(0.9, 0, 0, 45)
+hbBox.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+hbBox.PlaceholderText = "Tamanho (1-15)"
+hbBox.Text = "2"
+hbBox.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", hbBox)
+
+-- Funções de Clique e Input
+hbBtn.MouseButton1Click:Connect(function()
+    hitboxAtiva = not hitboxAtiva
+    hbBtn.Text = hitboxAtiva and "Hitbox: ON" or "Hitbox: OFF"
+end)
+
+hbBox.FocusLost:Connect(function()
+    local val = tonumber(hbBox.Text)
+    if val then
+        hitboxTamanho = math.clamp(val, 1, 15) -- Limita a 15 para não bugar o mapa
+    end
 end)
 
 
@@ -367,5 +400,31 @@ RunService.RenderStepped:Connect(function()
         local cam = workspace.CurrentCamera
 
         cam.CFrame = cam.CFrame * CFrame.Angles(0, 0, 0)
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    -- Itera sobre todos os jogadores no servidor
+    for _, v in pairs(game:GetService("Players"):GetPlayers()) do
+        -- Verifica se o player não é você e se ele tem um personagem vivo
+        if v ~= player and v.Character and v.Character:FindFirstChild("Head") then
+            local head = v.Character.Head
+            
+            if hitboxAtiva then
+                -- Define o tamanho que você escolheu
+                head.Size = Vector3.new(hitboxTamanho, hitboxTamanho, hitboxTamanho)
+                
+                -- RESOLUÇÃO DO ERRO DE MOVIMENTO:
+                head.CanCollide = false -- Impede a cabeça de bater em paredes/chão
+                head.Massless = true    -- Tira o peso da cabeça (isso faz ele andar normal)
+                head.Transparency = 0.5 -- Opcional: para você ver o tamanho da hitbox
+            else
+                -- Reseta para o padrão quando desligado
+                head.Size = Vector3.new(1, 1, 1)
+                head.CanCollide = true
+                head.Massless = false
+                head.Transparency = 0
+            end
+        end
     end
 end)
