@@ -233,7 +233,7 @@ local hbBox = Instance.new("TextBox", abaDiv)
 hbBox.Size = UDim2.new(0.9, 0, 0, 45)
 hbBox.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
 hbBox.PlaceholderText = "Tamanho (1-15)"
-hbBox.Text = "2"
+hbBox.Text = "Hitbox: "
 hbBox.TextColor3 = Color3.new(1, 1, 1)
 Instance.new("UICorner", hbBox)
 
