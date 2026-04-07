@@ -150,7 +150,7 @@ local esperandoTecla = false
 local noRecoilAtivo = false
 local hitboxAtiva = false
 local hitboxTamanho = 2
-
+local alvoAtual = nil
 
 
 -- --- ABA MOVIMENTAÇÃO ---
@@ -233,7 +233,7 @@ local hbBox = Instance.new("TextBox", abaDiv)
 hbBox.Size = UDim2.new(0.9, 0, 0, 45)
 hbBox.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
 hbBox.PlaceholderText = "Tamanho (1-15)"
-hbBox.Text = "Hitbox: "
+hbBox.Text = "2"
 hbBox.TextColor3 = Color3.new(1, 1, 1)
 Instance.new("UICorner", hbBox)
 
@@ -347,21 +347,37 @@ RunService.Stepped:Connect(function()
 end)
 
 RunService.RenderStepped:Connect(function()
-    if fovCirculo then fovCirculo.Position = UserInputService:GetMouseLocation() end
+   if fovCirculo then fovCirculo.Position = UserInputService:GetMouseLocation() end
+    
+    -- Verifica se o botão direito está pressionado
     if aimbotAtivo and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
         local camera = workspace.CurrentCamera
-        local alvo = nil
-        local menorDist = fovRaio
-        for _, v in pairs(players:GetPlayers()) do
-            if v ~= player and v.Character and v.Character:FindFirstChild(alvoParte) then
-                local pos, vis = camera:WorldToViewportPoint(v.Character[alvoParte].Position)
-                if vis then
-                    local mag = (Vector2.new(pos.X, pos.Y) - UserInputService:GetMouseLocation()).Magnitude
-                    if mag < menorDist then menorDist = mag alvo = v end
+        
+        -- Se já tiver um alvo, verifica se ele ainda é válido (está no jogo e vivo)
+        if alvoAtual and alvoAtual.Character and alvoAtual.Character:FindFirstChild(alvoParte) and alvoAtual.Character.Humanoid.Health > 0 then
+            -- MANTÉM A MIRA NO ALVO ATUAL (Não procura outros)
+            camera.CFrame = CFrame.new(camera.CFrame.Position, alvoAtual.Character[alvoParte].Position)
+        else
+            -- Se não tem alvo ou o alvo morreu, PROCURA UM NOVO
+            alvoAtual = nil
+            local menorDist = fovRaio
+            
+            for _, v in pairs(players:GetPlayers()) do
+                if v ~= player and v.Character and v.Character:FindFirstChild(alvoParte) and v.Character.Humanoid.Health > 0 then
+                    local pos, vis = camera:WorldToViewportPoint(v.Character[alvoParte].Position)
+                    if vis then
+                        local mag = (Vector2.new(pos.X, pos.Y) - UserInputService:GetMouseLocation()).Magnitude
+                        if mag < menorDist then 
+                            menorDist = mag 
+                            alvoAtual = v 
+                        end
+                    end
                 end
             end
         end
-        if alvo then camera.CFrame = CFrame.new(camera.CFrame.Position, alvo.Character[alvoParte].Position) end
+    else
+        -- Se soltou o botão, reseta o alvo para poder escolher outro depois
+        alvoAtual = nil
     end
 end)
 
