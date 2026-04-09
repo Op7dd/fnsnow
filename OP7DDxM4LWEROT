@@ -69,6 +69,7 @@ local player = players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 -- --- INTERFACE PRINCIPAL ---
 local screenGui = Instance.new("ScreenGui")
@@ -153,7 +154,59 @@ local hitboxTamanho = 2
 local alvoAtual = nil
 local mouseTrackingAtivo = false
 local espAtivo = false
+local autoFarmAtivo = false
 
+-- --- FUNÇÕES DE APOIO AO FARM ---
+
+local function irPara(posicao)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = player.Character.HumanoidRootPart
+        -- Velocidade entre 18 e 22 é o "limite" da maioria dos anti-cheats
+        local info = TweenInfo.new((hrp.Position - posicao).Magnitude / 16, Enum.EasingStyle.Linear)
+        local tween = TweenService:Create(hrp, info, {CFrame = CFrame.new(posicao)})
+        
+        tween:Play()
+        
+        -- Se desligar o farm no meio do caminho, o movimento para na hora
+        local conexao
+        conexao = RunService.Heartbeat:Connect(function()
+            if not autoFarmAtivo then
+                tween:Cancel()
+                conexao:Disconnect()
+            end
+        end)
+
+        tween.Completed:Wait()
+        if conexao then conexao:Disconnect() end
+        
+        -- RESET DE FÍSICA: Isso impede o "puxão" após chegar
+        hrp.Velocity = Vector3.new(0,0,0)
+        task.wait(0.2) 
+    end
+end
+
+local function interagir()
+    task.wait(0.5)
+    -- Simula o aperto da tecla E
+    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.E, false, game)
+    task.wait(0.1)
+    game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.E, false, game)
+end
+
+local function equiparItem(nomeItem)
+    local tool = player.Backpack:FindFirstChild(nomeItem)
+    if tool then
+        player.Character.Humanoid:EquipTool(tool)
+    end
+end
+
+local function segurarClique(duracao)
+    local vu = game:GetService("VirtualUser")
+    -- Simula o clique segurado usando o VirtualUser (mais potente)
+    vu:Button1Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    task.wait(duracao)
+    vu:Button1Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+end
 
 -- --- ABA MOVIMENTAÇÃO ---
 local speedBox = Instance.new("TextBox")
@@ -221,6 +274,19 @@ aimBtn.MouseButton1Click:Connect(function()
     aimbotAtivo = not aimbotAtivo
     aimBtn.Text = aimbotAtivo and "Aimbot: ON" or "Aimbot: OFF"
     if fovCirculo then fovCirculo.Visible = aimbotAtivo end
+end)
+
+local farmBtn = Instance.new("TextButton", abaDiv)
+farmBtn.Size = UDim2.new(0.9, 0, 0, 45)
+farmBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+farmBtn.Text = "Auto Farm potato: OFF"
+farmBtn.TextColor3 = Color3.new(1, 1, 1)
+farmBtn.Font = Enum.Font.SourceSansBold
+Instance.new("UICorner", farmBtn)
+
+farmBtn.MouseButton1Click:Connect(function()
+    autoFarmAtivo = not autoFarmAtivo
+    farmBtn.Text = autoFarmAtivo and "Auto Farm: ON" or "Auto Farm: OFF"
 end)
 
 local recoilBtn = Instance.new("TextButton")
@@ -352,6 +418,20 @@ Instance.new("UICorner", keybindBtn)
 keybindBtn.MouseButton1Click:Connect(function()
     esperandoTecla = true
     keybindBtn.Text = "Pressione uma tecla..."
+end)
+
+local posBtn = Instance.new("TextButton", abaConfig)
+posBtn.Size = UDim2.new(0.9, 0, 0, 45)
+posBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+posBtn.Text = "Copiar Minha Posição (F9)"
+posBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", posBtn)
+
+posBtn.MouseButton1Click:Connect(function()
+    local pos = player.Character.HumanoidRootPart.Position
+    print("Sua posição atual é: " .. tostring(pos))
+    -- Se o seu executor suportar, ele já copia para o seu teclado:
+    if setclipboard then setclipboard(tostring(pos)) end
 end)
 
 local closeBtn = Instance.new("TextButton")
@@ -561,11 +641,96 @@ local function criarESP(p)
     coroutine.wrap(atualizar)()
 end
 
--- Inicia para todos
-for _, v in pairs(players:GetPlayers()) do
-    if v ~= player then criarESP(v) end
-end
+task.spawn(function()
+    while true do
+        task.wait(0.5)
+        if autoFarmAtivo then
+            -- Função de segurança interna
+            local function check() 
+                return autoFarmAtivo and player.Character and player.Character:FindFirstChild("HumanoidRootPart") 
+            end
 
-players.PlayerAdded:Connect(function(v)
-    if v ~= player then criarESP(v) end
+            -- [RESET DE CICLO] Garante que começa sem itens na mão
+            if player.Character:FindFirstChildOfClass("Tool") then
+                player.Character.Humanoid:UnequipTools()
+            end
+            task.wait(0.5)
+
+            -- LOCAL 1: Início
+            if not check() then continue end
+            irPara(Vector3.new(-478.62, 3.86, -434.95))
+            interagir()
+            task.wait(1)
+
+-- LOCAL 2: Batata (Equipar e Segurar E)
+            if not check() then continue end
+            irPara(Vector3.new(-462.28, 3.86, -467.48))
+            
+            -- Foca na bancada
+            workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, Vector3.new(-462.28, 1.8, -467.48))
+            task.wait(0.5)
+            
+            -- 1. BUSCA E EQUIPA A BATATA (Essencial para o progresso contar)
+            local itemParaEquipar = player.Backpack:FindFirstChild("Potato")
+            if itemParaEquipar then
+                player.Character.Humanoid:EquipTool(itemParaEquipar)
+                task.wait(1.2) -- Tempo para o servidor registrar o item na mão
+                
+                local vim = game:GetService("VirtualInputManager")
+                
+                print("Item equipado. Segurando E por 3 segundos...")
+                -- 2. APERTA O E
+                vim:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+
+                local tempoInicial = tick()
+                while tick() - tempoInicial < 3.5 do 
+                    if not check() then break end
+                    task.wait(0.1)
+                end
+                
+                -- 3. SOLTA O E
+                vim:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+                print("Ação finalizada.")
+            else
+                print("Erro: Você não tem a Potato na mochila!")
+            end
+            task.wait(0.5)
+
+            -- LOCAL 3: Saco de Batata
+            if not check() then continue end
+            irPara(Vector3.new(-462.12, 3.86, -473.57))
+            workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, Vector3.new(-462.12, 1.5, -473.57))
+            task.wait(0.8)
+            interagir()
+            task.wait(3)
+
+            -- LOCAL 4: Farinha
+            if not check() then continue end
+            irPara(Vector3.new(-462.76, 3.86, -522.47))
+            equiparItem("Flour")
+            equiparItem("Farinha")
+            task.wait(1)
+            interagir()
+            task.wait(3)
+
+            -- LOCAL 5: Finalização
+            if not check() then continue end
+            irPara(Vector3.new(-515.28, 3.86, -461.52))
+            interagir()
+            
+            -- [ESPERA INTELIGENTE] Verifica se o farm ainda está ON a cada segundo
+            print("Processando... Aguardando cooldown")
+            for i = 1, 61 do
+                if not check() then break end
+                task.wait(1)
+            end
+            
+            if check() then
+                interagir() -- Coleta o saco final
+                task.wait(2)
+                print("Ciclo reiniciando automaticamente...")
+                -- O loop volta sozinho para o topo (Local 1)
+            end
+        end
+    end
 end)
