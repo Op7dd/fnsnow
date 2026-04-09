@@ -271,7 +271,7 @@ end)
 local targetBtn = Instance.new("TextButton")
 targetBtn.Size = UDim2.new(0.9, 0, 0, 45)
 targetBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
-targetBtn.Text = "Alvo: Cabeça"
+targetBtn.Text = "Alvo aimbot: Cabeça"
 targetBtn.TextColor3 = Color3.new(1, 1, 1)
 targetBtn.Parent = abaDiv
 Instance.new("UICorner", targetBtn)
