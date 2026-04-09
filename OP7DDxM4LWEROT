@@ -152,6 +152,7 @@ local hitboxAtiva = false
 local hitboxTamanho = 2
 local alvoAtual = nil
 local mouseTrackingAtivo = false
+local espAtivo = false
 
 
 -- --- ABA MOVIMENTAÇÃO ---
@@ -200,6 +201,20 @@ pcall(function()
     fovCirculo.Radius = fovRaio
     fovCirculo.Color = Color3.new(1,1,1)
     fovCirculo.Thickness = 1
+end)
+
+-- BOTÃO ATIVAR/DESATIVAR ESP
+local espBtn = Instance.new("TextButton", abaDiv)
+espBtn.Size = UDim2.new(0.9, 0, 0, 45)
+espBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+espBtn.Text = "ESP: OFF"
+espBtn.TextColor3 = Color3.new(1, 1, 1)
+espBtn.Font = Enum.Font.SourceSansBold
+Instance.new("UICorner", espBtn)
+
+espBtn.MouseButton1Click:Connect(function()
+    espAtivo = not espAtivo
+    espBtn.Text = espAtivo and "ESP: ON" or "ESP: OFF"
 end)
 
 aimBtn.MouseButton1Click:Connect(function()
@@ -494,4 +509,63 @@ RunService.RenderStepped:Connect(function()
             game:GetService("VirtualUser"):MoveMouse(Vector2.new(novaPos.X, novaPos.Y))
         end
     end
+end)
+
+-- --- LÓGICA DO ESP (BOX + NOME) ---
+local function criarESP(p)
+    local Box = Drawing.new("Square")
+    Box.Visible = false
+    Box.Color = Color3.fromRGB(255, 255, 255)
+    Box.Thickness = 1
+    Box.Transparency = 1
+    Box.Filled = false
+
+    local Nome = Drawing.new("Text")
+    Nome.Visible = false
+    Nome.Color = Color3.fromRGB(255, 255, 255)
+    Nome.Size = 16
+    Nome.Center = true
+    Nome.Outline = true
+
+    local function atualizar()
+        local conexao
+        conexao = RunService.RenderStepped:Connect(function()
+            if espAtivo and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+                local pos, vis = workspace.CurrentCamera:WorldToViewportPoint(p.Character.HumanoidRootPart.Position)
+                
+                if vis then
+                    -- Ajuste de tamanho baseado na distância
+                    local escala = 1000 / pos.Z
+                    Box.Size = Vector2.new(2.5 * escala, 4.5 * escala)
+                    Box.Position = Vector2.new(pos.X - Box.Size.X / 2, pos.Y - Box.Size.Y / 2)
+                    Box.Visible = true
+
+                    Nome.Position = Vector2.new(pos.X, pos.Y - (Box.Size.Y / 2) - 20)
+                    Nome.Text = p.Name .. " [" .. math.floor(p.Character.Humanoid.Health) .. "%]"
+                    Nome.Visible = true
+                else
+                    Box.Visible = false
+                    Nome.Visible = false
+                end
+            else
+                Box.Visible = false
+                Nome.Visible = false
+                if not p or not p.Parent then
+                    Box:Remove()
+                    Nome:Remove()
+                    conexao:Disconnect()
+                end
+            end
+        end)
+    end
+    coroutine.wrap(atualizar)()
+end
+
+-- Inicia para todos
+for _, v in pairs(players:GetPlayers()) do
+    if v ~= player then criarESP(v) end
+end
+
+players.PlayerAdded:Connect(function(v)
+    if v ~= player then criarESP(v) end
 end)
