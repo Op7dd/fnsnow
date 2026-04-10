@@ -209,21 +209,37 @@ local function segurarClique(duracao)
 end
 
 -- --- ABA MOVIMENTAÇÃO ---
+local speedAtivo = false
+local speedValor = 16
+
+local speedBtn = Instance.new("TextButton")
+speedBtn.Size = UDim2.new(0.9, 0, 0, 45)
+speedBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+speedBtn.Text = "Speed Hack: OFF"
+speedBtn.TextColor3 = Color3.new(1, 1, 1)
+speedBtn.Font = Enum.Font.SourceSansBold
+speedBtn.Parent = abaMov
+Instance.new("UICorner", speedBtn)
+
 local speedBox = Instance.new("TextBox")
 speedBox.Size = UDim2.new(0.9, 0, 0, 45)
-speedBox.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
-speedBox.Text = "Velocidade: 16"
+speedBox.BackgroundColor3 = Color3.fromRGB(130, 10, 10)
+speedBox.PlaceholderText = "Velocidade (Ex: 50)"
+speedBox.Text = "16"
 speedBox.TextColor3 = Color3.new(1, 1, 1)
 speedBox.Font = Enum.Font.SourceSansBold
 speedBox.Parent = abaMov
 Instance.new("UICorner", speedBox)
-speedBox.FocusLost:Connect(function(enter)
-    if enter then
-        local num = tonumber(speedBox.Text:match("%d+"))
-        if num and player.Character and player.Character:FindFirstChild("Humanoid") then
-            player.Character.Humanoid.WalkSpeed = num
-        end
-    end
+
+-- Lógica dos botões
+speedBtn.MouseButton1Click:Connect(function()
+    speedAtivo = not speedAtivo
+    speedBtn.Text = speedAtivo and "Speed Hack: ON" or "Speed Hack: OFF"
+end)
+
+speedBox.FocusLost:Connect(function()
+    local num = tonumber(speedBox.Text)
+    if num then speedValor = num end
 end)
 
 local noclipBtn = Instance.new("TextButton")
@@ -731,6 +747,18 @@ task.spawn(function()
                 print("Ciclo reiniciando automaticamente...")
                 -- O loop volta sozinho para o topo (Local 1)
             end
+        end
+    end
+end)
+RunService.Heartbeat:Connect(function()
+    if speedAtivo and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = player.Character.HumanoidRootPart
+        local hum = player.Character:FindFirstChild("Humanoid")
+        
+        if hum and hum.MoveDirection.Magnitude > 0 then
+            -- Multiplicador ajustado para o motor do Roblox
+            local moveSpeed = (speedValor - 16) / 60
+            hrp.CFrame = hrp.CFrame + (hum.MoveDirection * moveSpeed)
         end
     end
 end)
