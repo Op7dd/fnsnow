@@ -607,39 +607,46 @@ local function criarESP(p)
     Nome.Center = true
     Nome.Outline = true
 
-    local function atualizar()
-        local conexao
-        conexao = RunService.RenderStepped:Connect(function()
-            if espAtivo and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-                local pos, vis = workspace.CurrentCamera:WorldToViewportPoint(p.Character.HumanoidRootPart.Position)
-                
-                if vis then
-                    -- Ajuste de tamanho baseado na distância
-                    local escala = 1000 / pos.Z
-                    Box.Size = Vector2.new(2.5 * escala, 4.5 * escala)
-                    Box.Position = Vector2.new(pos.X - Box.Size.X / 2, pos.Y - Box.Size.Y / 2)
-                    Box.Visible = true
+    local conexao
+    conexao = RunService.RenderStepped:Connect(function()
+        if espAtivo and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+            local pos, vis = workspace.CurrentCamera:WorldToViewportPoint(p.Character.HumanoidRootPart.Position)
+            
+            if vis then
+                local escala = 1000 / pos.Z
+                Box.Size = Vector2.new(2.5 * escala, 4.5 * escala)
+                Box.Position = Vector2.new(pos.X - Box.Size.X / 2, pos.Y - Box.Size.Y / 2)
+                Box.Visible = true
 
-                    Nome.Position = Vector2.new(pos.X, pos.Y - (Box.Size.Y / 2) - 20)
-                    Nome.Text = p.Name .. " [" .. math.floor(p.Character.Humanoid.Health) .. "%]"
-                    Nome.Visible = true
-                else
-                    Box.Visible = false
-                    Nome.Visible = false
-                end
+                Nome.Position = Vector2.new(pos.X, pos.Y - (Box.Size.Y / 2) - 20)
+                Nome.Text = p.Name .. " [" .. math.floor(p.Character.Humanoid.Health) .. "%]"
+                Nome.Visible = true
             else
                 Box.Visible = false
                 Nome.Visible = false
-                if not p or not p.Parent then
-                    Box:Remove()
-                    Nome:Remove()
-                    conexao:Disconnect()
-                end
             end
-        end)
-    end
-    coroutine.wrap(atualizar)()
+        else
+            Box.Visible = false
+            Nome.Visible = false
+            if not p or not p.Parent then
+                Box:Remove()
+                Nome:Remove()
+                conexao:Disconnect()
+            end
+        end
+    end)
 end
+
+-- ATIVA O ESP PARA QUEM JÁ ESTÁ NO JOGO E PARA QUEM ENTRAR
+for _, v in pairs(game:GetService("Players"):GetPlayers()) do
+    if v ~= player then
+        criarESP(v)
+    end
+end
+
+game:GetService("Players").PlayerAdded:Connect(function(v)
+    criarESP(v)
+end)
 
 task.spawn(function()
     while true do
