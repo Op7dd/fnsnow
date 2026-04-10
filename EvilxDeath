@@ -1,0 +1,736 @@
+--SCRIPT OFICIAL Feito Por :OP7DD E M4LWEROT
+
+local KeySystem = {
+    Enabled = true,
+    Key = nil, -- será carregada do arquivo externo
+    Status = false
+}
+
+-- Puxa o arquivo remoto do GitHub
+local url = "https://raw.githubusercontent.com/Op7dd/fnsnow/refs/heads/main/Key.lua"
+local code = game:HttpGet(url)
+
+-- Executa o conteúdo do arquivo (que retorna a tabela KeyConfig)
+local KeyConfig = loadstring(code)()
+KeySystem.Key = KeyConfig.RemoteKey
+
+local function OpenKeySystem()
+    local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+    local Main = Instance.new("Frame", ScreenGui)
+    local TextBox = Instance.new("TextBox", Main)
+    local Submit = Instance.new("TextButton", Main)
+
+    -- Estilo básico
+    Main.Size = UDim2.new(0, 300, 0, 150)
+    Main.Position = UDim2.new(0.5, -150, 0.5, -75)
+    Main.BackgroundColor3 = Color3.fromRGB(64,64,64)
+
+    TextBox.Size = UDim2.new(0, 200, 0, 40)
+    TextBox.Position = UDim2.new(0.5, -100, 0.3, 0)
+    TextBox.PlaceholderText = "Enter Key..."
+    TextBox.Text = ""
+
+    Submit.Size = UDim2.new(0, 100, 0, 30)
+    Submit.Position = UDim2.new(0.5, -50, 0.7, 0)
+    Submit.Text = "Submit"
+    Submit.BackgroundColor3 = Color3.fromRGB(64,64,64)
+    Submit.TextColor3 = Color3.new(255, 255, 255)
+
+  Submit.MouseButton1Click:Connect(function()
+        if TextBox.Text == KeySystem.Key then
+            KeySystem.Status = true
+            
+            -- NOTIFICAÇÃO DE SUCESSO
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "Acesso Permitido",
+                Text = "Você acessou o Sexy Hub com sucesso, seja bem-vindo: " .. game.Players.LocalPlayer.Name,
+                Duration = 5,
+                Icon = "rbxassetid://12296859791" -- Ícone opcional de check
+            })
+
+            ScreenGui:Destroy()
+        else
+            TextBox.Text = ""
+            TextBox.PlaceholderText = "WRONG KEY!"
+            task.wait(1)
+            TextBox.PlaceholderText = "Enter Key..."
+        end
+    end)
+
+    repeat task.wait() until KeySystem.Status == true
+end
+
+if KeySystem.Enabled then
+    OpenKeySystem()
+end
+
+local players = game:GetService("Players")
+local player = players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+-- --- INTERFACE PRINCIPAL ---
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ModernUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 450, 0, 350)
+mainFrame.Position = UDim2.new(0.5, -255, 0.5, -175)
+mainFrame.BackgroundColor3 = Color3.fromRGB(141, 7, 7)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Parent = screenGui
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 15)
+
+local sidebar = Instance.new("Frame")
+sidebar.Size = UDim2.new(0, 120, 1, 0)
+sidebar.BackgroundColor3 = Color3.fromRGB(100, 6, 6)
+sidebar.BorderSizePixel = 0
+sidebar.Parent = mainFrame
+Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0, 15)
+
+local sidebarLayout = Instance.new("UIListLayout")
+sidebarLayout.Padding = UDim.new(0, 5)
+sidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+sidebarLayout.Parent = sidebar
+
+local contentHolder = Instance.new("Frame")
+contentHolder.Size = UDim2.new(1, -130, 1, -10)
+contentHolder.Position = UDim2.new(0, 125, 0, 5)
+contentHolder.BackgroundTransparency = 1
+contentHolder.Parent = mainFrame
+
+local abas = {}
+local function novaAba(nome)
+    local frameAba = Instance.new("ScrollingFrame")
+    frameAba.Size = UDim2.new(1, 0, 1, 0)
+    frameAba.BackgroundTransparency = 1
+    frameAba.Visible = false
+    frameAba.ScrollBarThickness = 2
+    frameAba.CanvasSize = UDim2.new(0, 0, 2, 0)
+    frameAba.Parent = contentHolder
+    local layout = Instance.new("UIListLayout")
+    layout.Padding = UDim.new(0, 10)
+    layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    layout.Parent = frameAba
+    local btnAba = Instance.new("TextButton")
+    btnAba.Size = UDim2.new(0.9, 0, 0, 40)
+    btnAba.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+    btnAba.Text = nome
+    btnAba.TextColor3 = Color3.new(1, 1, 1)
+    btnAba.Font = Enum.Font.SourceSansBold
+    btnAba.TextSize = 16
+    btnAba.Parent = sidebar
+    Instance.new("UICorner", btnAba).CornerRadius = UDim.new(0, 8)
+    btnAba.MouseButton1Click:Connect(function()
+        for _, v in pairs(abas) do v.Visible = false end
+        frameAba.Visible = true
+    end)
+    abas[nome] = frameAba
+    return frameAba
+end
+
+local abaMov = novaAba("Movimentação")
+local abaDiv = novaAba("Diversos")
+local abaConfig = novaAba("Configuração")
+abaMov.Visible = true
+
+-- --- VARIÁVEIS ---
+local noclipAtivo = false
+local infJumpAtivo = false
+local aimbotAtivo = false
+local fovRaio = 100
+local alvoParte = "Head"
+local teclaAbrir = Enum.KeyCode.E
+local menuVisivel = true
+local esperandoTecla = false
+local noRecoilAtivo = false
+local hitboxAtiva = false
+local hitboxTamanho = 2
+local alvoAtual = nil
+local mouseTrackingAtivo = false
+local espAtivo = false
+local autoFarmAtivo = false
+
+-- --- FUNÇÕES DE APOIO AO FARM ---
+
+local function irPara(posicao)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = player.Character.HumanoidRootPart
+        -- Velocidade entre 18 e 22 é o "limite" da maioria dos anti-cheats
+        local info = TweenInfo.new((hrp.Position - posicao).Magnitude / 16, Enum.EasingStyle.Linear)
+        local tween = TweenService:Create(hrp, info, {CFrame = CFrame.new(posicao)})
+        
+        tween:Play()
+        
+        -- Se desligar o farm no meio do caminho, o movimento para na hora
+        local conexao
+        conexao = RunService.Heartbeat:Connect(function()
+            if not autoFarmAtivo then
+                tween:Cancel()
+                conexao:Disconnect()
+            end
+        end)
+
+        tween.Completed:Wait()
+        if conexao then conexao:Disconnect() end
+        
+        -- RESET DE FÍSICA: Isso impede o "puxão" após chegar
+        hrp.Velocity = Vector3.new(0,0,0)
+        task.wait(0.2) 
+    end
+end
+
+local function interagir()
+    task.wait(0.5)
+    -- Simula o aperto da tecla E
+    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.E, false, game)
+    task.wait(0.1)
+    game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.E, false, game)
+end
+
+local function equiparItem(nomeItem)
+    local tool = player.Backpack:FindFirstChild(nomeItem)
+    if tool then
+        player.Character.Humanoid:EquipTool(tool)
+    end
+end
+
+local function segurarClique(duracao)
+    local vu = game:GetService("VirtualUser")
+    -- Simula o clique segurado usando o VirtualUser (mais potente)
+    vu:Button1Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    task.wait(duracao)
+    vu:Button1Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+end
+
+-- --- ABA MOVIMENTAÇÃO ---
+local speedBox = Instance.new("TextBox")
+speedBox.Size = UDim2.new(0.9, 0, 0, 45)
+speedBox.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+speedBox.Text = "Velocidade: 16"
+speedBox.TextColor3 = Color3.new(1, 1, 1)
+speedBox.Font = Enum.Font.SourceSansBold
+speedBox.Parent = abaMov
+Instance.new("UICorner", speedBox)
+speedBox.FocusLost:Connect(function(enter)
+    if enter then
+        local num = tonumber(speedBox.Text:match("%d+"))
+        if num and player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.WalkSpeed = num
+        end
+    end
+end)
+
+local noclipBtn = Instance.new("TextButton")
+noclipBtn.Size = UDim2.new(0.9, 0, 0, 45)
+noclipBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+noclipBtn.Text = "Noclip: OFF"
+noclipBtn.TextColor3 = Color3.new(1, 1, 1)
+noclipBtn.Parent = abaMov
+Instance.new("UICorner", noclipBtn)
+noclipBtn.MouseButton1Click:Connect(function()
+    noclipAtivo = not noclipAtivo
+    noclipBtn.Text = noclipAtivo and "Noclip: ON" or "Noclip: OFF"
+end)
+
+-- --- ABA DIVERSOS (Aimbot Customizável) ---
+local aimBtn = Instance.new("TextButton")
+aimBtn.Size = UDim2.new(0.9, 0, 0, 45)
+aimBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+aimBtn.Text = "Aimbot: OFF"
+aimBtn.TextColor3 = Color3.new(1, 1, 1)
+aimBtn.Parent = abaDiv
+Instance.new("UICorner", aimBtn)
+
+local fovCirculo = nil
+pcall(function()
+    fovCirculo = Drawing.new("Circle")
+    fovCirculo.Visible = false
+    fovCirculo.Radius = fovRaio
+    fovCirculo.Color = Color3.new(1,1,1)
+    fovCirculo.Thickness = 1
+end)
+
+-- BOTÃO ATIVAR/DESATIVAR ESP
+local espBtn = Instance.new("TextButton", abaDiv)
+espBtn.Size = UDim2.new(0.9, 0, 0, 45)
+espBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+espBtn.Text = "ESP: OFF"
+espBtn.TextColor3 = Color3.new(1, 1, 1)
+espBtn.Font = Enum.Font.SourceSansBold
+Instance.new("UICorner", espBtn)
+
+espBtn.MouseButton1Click:Connect(function()
+    espAtivo = not espAtivo
+    espBtn.Text = espAtivo and "ESP: ON" or "ESP: OFF"
+end)
+
+aimBtn.MouseButton1Click:Connect(function()
+    aimbotAtivo = not aimbotAtivo
+    aimBtn.Text = aimbotAtivo and "Aimbot: ON" or "Aimbot: OFF"
+    if fovCirculo then fovCirculo.Visible = aimbotAtivo end
+end)
+
+local farmBtn = Instance.new("TextButton", abaDiv)
+farmBtn.Size = UDim2.new(0.9, 0, 0, 45)
+farmBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+farmBtn.Text = "Auto Farm potato: OFF"
+farmBtn.TextColor3 = Color3.new(1, 1, 1)
+farmBtn.Font = Enum.Font.SourceSansBold
+Instance.new("UICorner", farmBtn)
+
+farmBtn.MouseButton1Click:Connect(function()
+    autoFarmAtivo = not autoFarmAtivo
+    farmBtn.Text = autoFarmAtivo and "Auto Farm: ON" or "Auto Farm: OFF"
+end)
+
+local recoilBtn = Instance.new("TextButton")
+recoilBtn.Size = UDim2.new(0.9, 0, 0, 45)
+recoilBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+recoilBtn.Text = "No Recoil: OFF"
+recoilBtn.TextColor3 = Color3.new(1, 1, 1)
+recoilBtn.Parent = abaDiv
+Instance.new("UICorner", recoilBtn)
+
+recoilBtn.MouseButton1Click:Connect(function()
+    noRecoilAtivo = not noRecoilAtivo
+    recoilBtn.Text = noRecoilAtivo and "No Recoil: ON" or "No  Recoil: OFF "
+end)
+
+-- Botão de Alternar Hitbox
+local hbBtn = Instance.new("TextButton", abaDiv)
+hbBtn.Size = UDim2.new(0.9, 0, 0, 45)
+hbBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+hbBtn.Text = "Hitbox: OFF"
+hbBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", hbBtn)
+
+-- Caixa de Texto para o Tamanho
+local hbBox = Instance.new("TextBox", abaDiv)
+hbBox.Size = UDim2.new(0.9, 0, 0, 45)
+hbBox.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+hbBox.PlaceholderText = "Tamanho (1-15)"
+hbBox.Text = "2"
+hbBox.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", hbBox)
+
+-- Funções de Clique e Input
+hbBtn.MouseButton1Click:Connect(function()
+    hitboxAtiva = not hitboxAtiva
+    hbBtn.Text = hitboxAtiva and "Hitbox: ON" or "Hitbox: OFF"
+end)
+
+hbBox.FocusLost:Connect(function()
+    local val = tonumber(hbBox.Text)
+    if val then
+        hitboxTamanho = math.clamp(val, 1, 15) -- Limita a 15 para não bugar o mapa
+    end
+end)
+
+
+-- CUSTOMIZAR PARTE DO ALVO
+local targetBtn = Instance.new("TextButton")
+targetBtn.Size = UDim2.new(0.9, 0, 0, 45)
+targetBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+targetBtn.Text = "Alvo aimbot: Cabeça"
+targetBtn.TextColor3 = Color3.new(1, 1, 1)
+targetBtn.Parent = abaDiv
+Instance.new("UICorner", targetBtn)
+targetBtn.MouseButton1Click:Connect(function()
+    if alvoParte == "Head" then
+        alvoParte = "HumanoidRootPart"
+        targetBtn.Text = "Alvo: Torso"
+    else
+        alvoParte = "Head"
+        targetBtn.Text = "Alvo: Cabeça"
+    end
+end)
+
+-- CUSTOMIZAR TAMANHO DO FOV
+local fovBox = Instance.new("TextBox")
+fovBox.Size = UDim2.new(0.9, 0, 0, 45)
+fovBox.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+fovBox.Text = "Raio FOV: 100"
+fovBox.TextColor3 = Color3.new(1, 1, 1)
+fovBox.Font = Enum.Font.SourceSansBold
+fovBox.Parent = abaDiv
+Instance.new("UICorner", fovBox)
+fovBox.FocusLost:Connect(function(enter)
+    if enter then
+        local num = tonumber(fovBox.Text:match("%d+"))
+        if num then
+            fovRaio = num
+            if fovCirculo then fovCirculo.Radius = num end
+        end
+    end
+end)
+
+local mtBtn = Instance.new("TextButton", abaDiv)
+mtBtn.Size = UDim2.new(0.9, 0, 0, 45)
+mtBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+mtBtn.Text = "Mouse Tracking: OFF"
+mtBtn.TextColor3 = Color3.new(1, 1, 1)
+mtBtn.Font = Enum.Font.SourceSansBold
+Instance.new("UICorner", mtBtn)
+
+mtBtn.MouseButton1Click:Connect(function()
+    mouseTrackingAtivo = not mouseTrackingAtivo
+    mtBtn.Text = mouseTrackingAtivo and "Mouse Tracking: ON" or "Mouse Tracking: OFF"
+end)
+
+local delToolBtn = Instance.new("TextButton")
+delToolBtn.Size = UDim2.new(0.9, 0, 0, 45)
+delToolBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+delToolBtn.Text = "Ganhar Deletador"
+delToolBtn.TextColor3 = Color3.new(1, 1, 1)
+delToolBtn.Parent = abaDiv
+Instance.new("UICorner", delToolBtn)
+delToolBtn.MouseButton1Click:Connect(function()
+    local tool = Instance.new("Tool")
+    tool.Name = "Click Deletar"
+    tool.RequiresHandle = true
+    local handle = Instance.new("Part")
+    handle.Name = "Handle"
+    handle.Size = Vector3.new(1, 1, 1)
+    handle.Transparency = 0.5
+    handle.BrickColor = BrickColor.new("Bright red")
+    handle.Parent = tool
+    tool.Activated:Connect(function()
+        local target = player:GetMouse().Target
+        if target and target.Name ~= "Baseplate" and target.Name ~= "Terrain" then target:Destroy() end
+    end)
+    tool.Parent = player.Backpack
+end)
+
+-- --- ABA CONFIGURAÇÃO ---
+local keybindBtn = Instance.new("TextButton")
+keybindBtn.Size = UDim2.new(0.9, 0, 0, 45)
+keybindBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
+keybindBtn.Text = "Atalho: E"
+keybindBtn.TextColor3 = Color3.new(1, 1, 1)
+keybindBtn.Parent = abaConfig
+Instance.new("UICorner", keybindBtn)
+keybindBtn.MouseButton1Click:Connect(function()
+    esperandoTecla = true
+    keybindBtn.Text = "Pressione uma tecla..."
+end)
+
+local posBtn = Instance.new("TextButton", abaConfig)
+posBtn.Size = UDim2.new(0.9, 0, 0, 45)
+posBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+posBtn.Text = "Copiar Minha Posição (F9)"
+posBtn.TextColor3 = Color3.new(1, 1, 1)
+Instance.new("UICorner", posBtn)
+
+posBtn.MouseButton1Click:Connect(function()
+    local pos = player.Character.HumanoidRootPart.Position
+    print("Sua posição atual é: " .. tostring(pos))
+    -- Se o seu executor suportar, ele já copia para o seu teclado:
+    if setclipboard then setclipboard(tostring(pos)) end
+end)
+
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0.9, 0, 0, 45)
+closeBtn.BackgroundColor3 = Color3.fromRGB(80, 0, 0)
+closeBtn.Text = "Fechar UI"
+closeBtn.TextColor3 = Color3.new(1, 1, 1)
+closeBtn.Parent = abaConfig
+Instance.new("UICorner", closeBtn)
+closeBtn.MouseButton1Click:Connect(function() 
+    if fovCirculo then fovCirculo:Remove() end
+    screenGui:Destroy() 
+end)
+
+-- --- LÓGICA DE LOOPS ---
+RunService.Stepped:Connect(function()
+    if noclipAtivo and player.Character then
+        for _, part in pairs(player.Character:GetDescendants()) do
+            if part:IsA("BasePart") then part.CanCollide = false end
+        end
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+   if fovCirculo then fovCirculo.Position = UserInputService:GetMouseLocation() end
+    
+    -- Verifica se o botão direito está pressionado
+    if aimbotAtivo and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+        local camera = workspace.CurrentCamera
+        
+        -- Se já tiver um alvo, verifica se ele ainda é válido (está no jogo e vivo)
+        if alvoAtual and alvoAtual.Character and alvoAtual.Character:FindFirstChild(alvoParte) and alvoAtual.Character.Humanoid.Health > 0 then
+            -- MANTÉM A MIRA NO ALVO ATUAL (Não procura outros)
+            camera.CFrame = CFrame.new(camera.CFrame.Position, alvoAtual.Character[alvoParte].Position)
+        else
+            -- Se não tem alvo ou o alvo morreu, PROCURA UM NOVO
+            alvoAtual = nil
+            local menorDist = fovRaio
+            
+            for _, v in pairs(players:GetPlayers()) do
+                if v ~= player and v.Character and v.Character:FindFirstChild(alvoParte) and v.Character.Humanoid.Health > 0 then
+                    local pos, vis = camera:WorldToViewportPoint(v.Character[alvoParte].Position)
+                    if vis then
+                        local mag = (Vector2.new(pos.X, pos.Y) - UserInputService:GetMouseLocation()).Magnitude
+                        if mag < menorDist then 
+                            menorDist = mag 
+                            alvoAtual = v 
+                        end
+                    end
+                end
+            end
+        end
+    else
+        -- Se soltou o botão, reseta o alvo para poder escolher outro depois
+        alvoAtual = nil
+    end
+end)
+
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if esperandoTecla then
+        teclaAbrir = input.KeyCode
+        keybindBtn.Text = "Atalho: " .. teclaAbrir.Name
+        esperandoTecla = false
+    elseif not gpe and input.KeyCode == teclaAbrir then
+        menuVisivel = not menuVisivel
+        mainFrame.Visible = menuVisivel
+    end
+end)
+
+-- Arrastar UI 
+local dragging, dragInput, dragStart, startPos
+mainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true dragStart = input.Position startPos = mainFrame.Position
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+end)
+
+RunService.RenderStepped:Connect(function()
+    --TE AMO M4 TE AMO M4 TE AMO M4 TE AMO M4
+
+    if noRecoilAtivo and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
+        local cam = workspace.CurrentCamera
+
+        cam.CFrame = cam.CFrame * CFrame.Angles(0, 0, 0)
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    -- Itera sobre todos os jogadores no servidor
+    for _, v in pairs(game:GetService("Players"):GetPlayers()) do
+        -- Verifica se o player não é você e se ele tem um personagem vivo
+        if v ~= player and v.Character and v.Character:FindFirstChild("Head") then
+            local head = v.Character.Head
+            
+            if hitboxAtiva then
+                -- Define o tamanho que você escolheu
+                head.Size = Vector3.new(hitboxTamanho, hitboxTamanho, hitboxTamanho)
+                
+                -- RESOLUÇÃO DO ERRO DE MOVIMENTO:
+                head.CanCollide = false -- Impede a cabeça de bater em paredes/chão
+                head.Massless = true    -- Tira o peso da cabeça (isso faz ele andar normal)
+                head.Transparency = 0.5 -- Opcional: para você ver o tamanho da hitbox
+            else
+                -- Reseta para o padrão quando desligado
+                head.Size = Vector3.new(1, 1, 1)
+                head.CanCollide = true
+                head.Massless = false
+                head.Transparency = 0
+            end
+        end
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    -- Só funciona se a função estiver ativa e você estiver segurando o Botão Direito
+    if mouseTrackingAtivo and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+        local camera = workspace.CurrentCamera
+        local mouse = player:GetMouse()
+        local menorDist = fovRaio
+        local alvoTemp = nil
+
+        -- 1. Busca o inimigo mais próximo da mira (mesmo que o Aimbot esteja desligado)
+        for _, v in pairs(players:GetPlayers()) do
+            if v ~= player and v.Character and v.Character:FindFirstChild(alvoParte) and v.Character.Humanoid.Health > 0 then
+                local pos, vis = camera:WorldToViewportPoint(v.Character[alvoParte].Position)
+                if vis then
+                    local mag = (Vector2.new(pos.X, pos.Y) - UserInputService:GetMouseLocation()).Magnitude
+                    if mag < menorDist then
+                        menorDist = mag
+                        alvoTemp = v
+                    end
+                end
+            end
+        end
+
+        -- 2. Se achou alguém, move o CURSOR
+        if alvoTemp then
+            local alvoPos, _ = camera:WorldToViewportPoint(alvoTemp.Character[alvoParte].Position)
+            local mousePos = UserInputService:GetMouseLocation()
+            
+            -- Velocidade do movimento do mouse (0.1 é lento/suave, 0.5 é rápido)
+            local suavidade = 0.2
+            local novaPos = mousePos:Lerp(Vector2.new(alvoPos.X, alvoPos.Y), suavidade)
+            
+            -- Move o cursor de fato
+            game:GetService("VirtualUser"):MoveMouse(Vector2.new(novaPos.X, novaPos.Y))
+        end
+    end
+end)
+
+-- --- LÓGICA DO ESP (BOX + NOME) ---
+local function criarESP(p)
+    local Box = Drawing.new("Square")
+    Box.Visible = false
+    Box.Color = Color3.fromRGB(255, 255, 255)
+    Box.Thickness = 1
+    Box.Transparency = 1
+    Box.Filled = false
+
+    local Nome = Drawing.new("Text")
+    Nome.Visible = false
+    Nome.Color = Color3.fromRGB(255, 255, 255)
+    Nome.Size = 16
+    Nome.Center = true
+    Nome.Outline = true
+
+    local function atualizar()
+        local conexao
+        conexao = RunService.RenderStepped:Connect(function()
+            if espAtivo and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+                local pos, vis = workspace.CurrentCamera:WorldToViewportPoint(p.Character.HumanoidRootPart.Position)
+                
+                if vis then
+                    -- Ajuste de tamanho baseado na distância
+                    local escala = 1000 / pos.Z
+                    Box.Size = Vector2.new(2.5 * escala, 4.5 * escala)
+                    Box.Position = Vector2.new(pos.X - Box.Size.X / 2, pos.Y - Box.Size.Y / 2)
+                    Box.Visible = true
+
+                    Nome.Position = Vector2.new(pos.X, pos.Y - (Box.Size.Y / 2) - 20)
+                    Nome.Text = p.Name .. " [" .. math.floor(p.Character.Humanoid.Health) .. "%]"
+                    Nome.Visible = true
+                else
+                    Box.Visible = false
+                    Nome.Visible = false
+                end
+            else
+                Box.Visible = false
+                Nome.Visible = false
+                if not p or not p.Parent then
+                    Box:Remove()
+                    Nome:Remove()
+                    conexao:Disconnect()
+                end
+            end
+        end)
+    end
+    coroutine.wrap(atualizar)()
+end
+
+task.spawn(function()
+    while true do
+        task.wait(0.5)
+        if autoFarmAtivo then
+            -- Função de segurança interna
+            local function check() 
+                return autoFarmAtivo and player.Character and player.Character:FindFirstChild("HumanoidRootPart") 
+            end
+
+            -- [RESET DE CICLO] Garante que começa sem itens na mão
+            if player.Character:FindFirstChildOfClass("Tool") then
+                player.Character.Humanoid:UnequipTools()
+            end
+            task.wait(0.5)
+
+            -- LOCAL 1: Início
+            if not check() then continue end
+            irPara(Vector3.new(-478.62, 3.86, -434.95))
+            interagir()
+            task.wait(1)
+
+-- LOCAL 2: Batata (Equipar e Segurar E)
+            if not check() then continue end
+            irPara(Vector3.new(-462.28, 3.86, -467.48))
+            
+            -- Foca na bancada
+            workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, Vector3.new(-462.28, 1.8, -467.48))
+            task.wait(0.5)
+            
+            -- 1. BUSCA E EQUIPA A BATATA (Essencial para o progresso contar)
+            local itemParaEquipar = player.Backpack:FindFirstChild("Potato")
+            if itemParaEquipar then
+                player.Character.Humanoid:EquipTool(itemParaEquipar)
+                task.wait(1.2) -- Tempo para o servidor registrar o item na mão
+                
+                local vim = game:GetService("VirtualInputManager")
+                
+                print("Item equipado. Segurando E por 3 segundos...")
+                -- 2. APERTA O E
+                vim:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+
+                local tempoInicial = tick()
+                while tick() - tempoInicial < 3.5 do 
+                    if not check() then break end
+                    task.wait(0.1)
+                end
+                
+                -- 3. SOLTA O E
+                vim:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+                print("Ação finalizada.")
+            else
+                print("Erro: Você não tem a Potato na mochila!")
+            end
+            task.wait(0.5)
+
+            -- LOCAL 3: Saco de Batata
+            if not check() then continue end
+            irPara(Vector3.new(-462.12, 3.86, -473.57))
+            workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, Vector3.new(-462.12, 1.5, -473.57))
+            task.wait(0.8)
+            interagir()
+            task.wait(3)
+
+            -- LOCAL 4: Farinha
+            if not check() then continue end
+            irPara(Vector3.new(-462.76, 3.86, -522.47))
+            equiparItem("Flour")
+            equiparItem("Farinha")
+            task.wait(1)
+            interagir()
+            task.wait(3)
+
+            -- LOCAL 5: Finalização
+            if not check() then continue end
+            irPara(Vector3.new(-515.28, 3.86, -461.52))
+            interagir()
+            
+            -- [ESPERA INTELIGENTE] Verifica se o farm ainda está ON a cada segundo
+            print("Processando... Aguardando cooldown")
+            for i = 1, 61 do
+                if not check() then break end
+                task.wait(1)
+            end
+            
+            if check() then
+                interagir() -- Coleta o saco final
+                task.wait(2)
+                print("Ciclo reiniciando automaticamente...")
+                -- O loop volta sozinho para o topo (Local 1)
+            end
+        end
+    end
+end)
