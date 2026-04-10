@@ -153,7 +153,6 @@ local hitboxAtiva = false
 local hitboxTamanho = 2
 local alvoAtual = nil
 local mouseTrackingAtivo = false
-local espAtivo = false
 local autoFarmAtivo = false
 
 -- --- FUNÇÕES DE APOIO AO FARM ---
@@ -272,19 +271,7 @@ pcall(function()
     fovCirculo.Thickness = 1
 end)
 
--- BOTÃO ATIVAR/DESATIVAR ESP
-local espBtn = Instance.new("TextButton", abaDiv)
-espBtn.Size = UDim2.new(0.9, 0, 0, 45)
-espBtn.BackgroundColor3 = Color3.fromRGB(172, 10, 10)
-espBtn.Text = "ESP: OFF"
-espBtn.TextColor3 = Color3.new(1, 1, 1)
-espBtn.Font = Enum.Font.SourceSansBold
-Instance.new("UICorner", espBtn)
 
-espBtn.MouseButton1Click:Connect(function()
-    espAtivo = not espAtivo
-    espBtn.Text = espAtivo and "ESP: ON" or "ESP: OFF"
-end)
 
 aimBtn.MouseButton1Click:Connect(function()
     aimbotAtivo = not aimbotAtivo
