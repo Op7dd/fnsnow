@@ -1,1 +1,338 @@
+local UserInputService = game:GetService("UserInputService")
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local TweenService = game:GetService("TweenService")
 
+local ListaTemas = {
+    {
+        Nome = "Escuro",
+        Main = Color3.fromRGB(25, 25, 25),
+        Content = Color3.fromRGB(35, 35, 35),
+        Accent = Color3.fromRGB(45, 45, 45)
+    },
+    {
+        Nome = "Azul",
+        Main = Color3.fromRGB(15, 20, 30),
+        Content = Color3.fromRGB(20, 30, 45),
+        Accent = Color3.fromRGB(30, 50, 80)
+    },
+    {
+        Nome = "Vibe",
+        Main = Color3.fromRGB(30, 10, 30),
+        Content = Color3.fromRGB(45, 15, 45),
+        Accent = Color3.fromRGB(100, 30, 100)
+    },
+    {
+        Nome = "BH4L",
+        Main = Color3.fromRGB(30, 5, 5),
+        Content = Color3.fromRGB(50, 10, 10),
+        Accent = Color3.fromRGB(130, 20, 20)
+    }
+}
+
+local temaAtual = 1 -- Começa no primeiro tema
+
+
+-- --- CONFIGURAÇÕES DE ESTADO ---variaveis
+local toggleKey = Enum.KeyCode.Insert
+local waitingForKey = false
+local menuVisible = true
+local Footer -- Deixe assim mesmo, sem o "local" na frente depois
+local triggerBotEnabled = false
+
+-- --- CRIAÇÃO DA SCREEN GUI ---
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "CustomHub_WildWest"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = playerGui
+
+
+
+-- --- JANELA PRINCIPAL (MAIN FRAME) ---
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 550, 0, 380)
+MainFrame.Position = UDim2.new(0.5, -275, 0.5, -190)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true -- Habilita arrastar nativo
+MainFrame.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.Parent = MainFrame
+MainFrame.ClipsDescendants = true -- Isso faz com que tudo que sair do limite do frame suma
+
+
+
+
+-- --- BOTÃO DESTROY (CANTO SUPERIOR ESQUERDO) ---
+local DestroyBtn = Instance.new("TextButton")
+DestroyBtn.Name = "DestroyBtn"
+DestroyBtn.Size = UDim2.new(0, 25, 0, 25)
+DestroyBtn.Position = UDim2.new(0, 10, 0, 10)
+DestroyBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+DestroyBtn.Text = "❌"
+DestroyBtn.TextColor3 = Color3.new(1, 1, 1)
+DestroyBtn.Font = Enum.Font.GothamBold
+DestroyBtn.TextSize = 14
+DestroyBtn.Parent = MainFrame
+
+local DestroyCorner = Instance.new("UICorner")
+DestroyCorner.CornerRadius = UDim.new(0, 5)
+DestroyCorner.Parent = DestroyBtn
+
+DestroyBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+
+
+local MinimizeBtn = Instance.new("TextButton")
+MinimizeBtn.Name = "MinimizeBtn"
+MinimizeBtn.Size = UDim2.new(0, 25, 0, 25)
+MinimizeBtn.Position = UDim2.new(0, 40, 0, 10) -- Posicionado ao lado do X
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+MinimizeBtn.Text = "-"
+MinimizeBtn.TextColor3 = Color3.new(1, 1, 1)
+MinimizeBtn.Font = Enum.Font.GothamBold
+MinimizeBtn.TextSize = 20
+MinimizeBtn.Parent = MainFrame
+
+local MinCorner = Instance.new("UICorner")
+MinCorner.CornerRadius = UDim.new(0, 5)
+MinCorner.Parent = MinimizeBtn
+
+local minimizado = false
+
+MinimizeBtn.MouseButton1Click:Connect(function()
+    minimizado = not minimizado
+    
+    -- Se Footer existir, muda a visibilidade
+    if Footer then
+        Footer.Visible = not minimizado
+    end
+
+    local targetSize = minimizado and UDim2.new(0, 75, 0, 45) or UDim2.new(0, 550, 0, 380)
+    local tweenInfo = TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    TweenService:Create(MainFrame, tweenInfo, {Size = targetSize}):Play()
+    
+    -- Esconde o resto
+    Sidebar.Visible = not minimizado
+    ContentContainer.Visible = not minimizado
+    
+    MinimizeBtn.Text = minimizado and "+" or "-"
+end)
+
+-- --- SIDEBAR (BARRA LATERAL) ---
+local Sidebar = Instance.new("Frame")
+Sidebar.Name = "Sidebar"
+Sidebar.Size = UDim2.new(0, 130, 1, -55)
+Sidebar.Position = UDim2.new(0, 10, 0, 45)
+Sidebar.BackgroundTransparency = 1
+Sidebar.Parent = MainFrame
+
+local SideLayout = Instance.new("UIListLayout")
+SideLayout.Padding = UDim.new(0, 8)
+SideLayout.Parent = Sidebar
+
+-- --- CONTAINER DE CONTEÚDO ---
+local ContentContainer = Instance.new("Frame")
+ContentContainer.Name = "ContentContainer"
+ContentContainer.Size = UDim2.new(1, -160, 1, -55)
+ContentContainer.Position = UDim2.new(0, 150, 0, 45)
+ContentContainer.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+ContentContainer.Parent = MainFrame
+
+local ContentCorner = Instance.new("UICorner")
+ContentCorner.CornerRadius = UDim.new(0, 10)
+ContentCorner.Parent = ContentContainer
+
+
+
+-- --- SISTEMA DE ABAS ---
+local abas = {}
+
+local function criarAba(nome)
+    -- Botão na Sidebar
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 35)
+    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    btn.Text = nome
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 14
+    btn.Parent = Sidebar
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+
+    -- Scrolling Frame da Aba
+    local scrol = Instance.new("ScrollingFrame")
+    scrol.Name = nome.."_Page"
+    scrol.Size = UDim2.new(1, -10, 1, -10)
+    scrol.Position = UDim2.new(0, 5, 0, 5)
+    scrol.BackgroundTransparency = 1
+    scrol.CanvasSize = UDim2.new(0, 0, 2, 0) -- Permite scroll longo
+    scrol.ScrollBarThickness = 3
+    scrol.Visible = false
+    scrol.Parent = ContentContainer
+
+    local scrolLayout = Instance.new("UIListLayout")
+    scrolLayout.Padding = UDim.new(0, 8)
+    scrolLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    scrolLayout.Parent = scrol
+
+    btn.MouseButton1Click:Connect(function()
+        for _, a in pairs(abas) do a.Visible = false end
+        scrol.Visible = true
+    end)
+
+    abas[nome] = scrol
+    return scrol
+end
+
+-- Criando as abas
+local AbaFarm = criarAba("FARM")
+local AbaMovement = criarAba("MOVEMENT")
+local AbaCombat = criarAba("COMBAT")
+local AbaConfig = criarAba("CONFIG")
+
+AbaFarm.Visible = true -- Começa na aba Farm
+
+-- --- BOTÃO DE KEYBIND (NA ABA CONFIG) ---
+local KeybindBtn = Instance.new("TextButton")
+KeybindBtn.Size = UDim2.new(0.9, 0, 0, 40)
+KeybindBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+KeybindBtn.Text = "Menu Key: " .. toggleKey.Name
+KeybindBtn.TextSize = 16
+KeybindBtn.TextColor3 = Color3.new(1, 1, 1)
+KeybindBtn.Font = Enum.Font.GothamBold
+KeybindBtn.Parent = AbaConfig
+Instance.new("UICorner", KeybindBtn)
+
+KeybindBtn.MouseButton1Click:Connect(function()
+    waitingForKey = true
+    KeybindBtn.Text = "Press any key..."
+end)
+
+-- --- LÓGICA DE INPUT (TOGGLE UI E KEYBIND) ---
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if waitingForKey and input.UserInputType == Enum.UserInputType.Keyboard then
+        toggleKey = input.KeyCode
+        KeybindBtn.Text = "Menu Key: " .. toggleKey.Name
+        waitingForKey = false
+        return
+    end
+
+    if not gpe and input.KeyCode == toggleKey then
+        menuVisible = not menuVisible
+        MainFrame.Visible = menuVisible
+    end
+end)
+
+local function proximoTema()
+    temaAtual = temaAtual + 1
+    if temaAtual > #ListaTemas then temaAtual = 1 end -- Reseta para o 1
+    
+    local t = ListaTemas[temaAtual]
+    local info = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+
+    -- Anima o fundo principal e o container
+    TweenService:Create(MainFrame, info, {BackgroundColor3 = t.Main}):Play()
+    TweenService:Create(ContentContainer, info, {BackgroundColor3 = t.Content}):Play()
+
+    -- Anima todos os botões da Sidebar
+    for _, obj in pairs(Sidebar:GetChildren()) do
+        if obj:IsA("TextButton") then
+            TweenService:Create(obj, info, {BackgroundColor3 = t.Accent}):Play()
+        end
+    end
+    
+    return t.Nome -- Retorna o nome para atualizar o texto do botão
+end
+
+local btnTema = Instance.new("TextButton", AbaConfig)
+btnTema.Size = UDim2.new(0.9, 0, 0, 40)
+btnTema.Text = "Tema Atual: Escuro"
+btnTema.TextSize = 16
+btnTema.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+btnTema.TextColor3 = Color3.new(1, 1, 1)
+btnTema.Font = Enum.Font.GothamBold
+Instance.new("UICorner", btnTema)
+
+btnTema.MouseButton1Click:Connect(function()
+    local nome = proximoTema()
+    btnTema.Text = "Tema Atual: " .. nome
+end)
+
+-- --- RODAPÉ EM MODO DE SEGURANÇA ---
+Footer = Instance.new("TextLabel")
+Footer.Name = "Footer"
+Footer.Parent = MainFrame -- Garante que o pai é o MainFrame
+Footer.ZIndex = 10 -- Joga ele lá pra frente de tudo
+Footer.Size = UDim2.new(1, 0, 0, 20)
+Footer.Position = UDim2.new(0, 10, 1, -30) -- Tenta subir ele um pouco mais (mudei de -20 para -25)
+Footer.BackgroundTransparency = 1
+Footer.Text = "OP7DD ON TOP" -- Teste sem emotes primeiro
+Footer.TextColor3 = Color3.fromRGB(255, 255, 255) -- Coloquei BRANCO puro para você enxergar
+Footer.TextSize = 16
+Footer.Font = Enum.Font.GothamBold
+Footer.TextXAlignment = Enum.TextXAlignment.Left
+Footer.Visible = true -- Só pra garantir
+
+-- ==========================================
+-- SEÇÃO DE COMBAT: DEFINITIVA
+-- ==========================================
+-- SEÇÃO DE COMBAT: DEFINITIVA (ESTÁVEL)
+-- ==========================================
+
+-- 1. BOTÃO DO TRIGGER BOT
+local TriggerBtn = Instance.new("TextButton")
+TriggerBtn.Name = "TriggerBtn"
+TriggerBtn.Size = UDim2.new(0.9, 0, 0, 40)
+TriggerBtn.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
+TriggerBtn.Text = "Trigger Bot: OFF"
+TriggerBtn.TextColor3 = Color3.new(1, 1, 1)
+TriggerBtn.Font = Enum.Font.GothamBold
+TriggerBtn.Parent = AbaCombat
+Instance.new("UICorner", TriggerBtn)
+
+-- 2. LÓGICA DO BOTÃO
+TriggerBtn.MouseButton1Click:Connect(function()
+    triggerBotEnabled = not triggerBotEnabled
+    TriggerBtn.Text = "Trigger Bot: " .. (triggerBotEnabled and "ON" or "OFF")
+    TriggerBtn.BackgroundColor3 = triggerBotEnabled and Color3.fromRGB(30, 150, 30) or Color3.fromRGB(150, 30, 30)
+end)
+
+
+
+-- 3. LOOP "RAIZ" (O QUE FUNCIONAVA)
+task.spawn(function()
+    while task.wait(0.01) do 
+        if triggerBotEnabled and not minimizado then
+            local mouse = player:GetMouse()
+            local t = mouse.Target
+            
+            if t and t.Parent then
+                -- Checagem direta: O pai do que eu toquei tem um Humanoid?
+                local char = t.Parent
+                if char:FindFirstChild("Humanoid") then
+                    local targetPlayer = game.Players:GetPlayerFromCharacter(char)
+                    
+                    -- Se for player, não for você e estiver vivo
+                    if targetPlayer and targetPlayer ~= player and char.Humanoid.Health > 0 then
+                        -- Clique simples (O executor precisa suportar isso)
+                        if mouse1click then 
+                            mouse1click() 
+                        elseif mouse1press then
+                            mouse1press()
+                            task.wait(0.01)
+                            mouse1release()
+                        end
+                        task.wait(0.2) -- Delay para não travar a arma
+                    end
+                end
+            end
+        end
+    end
+end)
