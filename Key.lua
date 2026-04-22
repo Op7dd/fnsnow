@@ -1,6 +1,6 @@
 -- KeyConfig.lua
 local KeyConfig = {}
 
-KeyConfig.RemoteKey = "rebimboca" -- sua chave
+KeyConfig.RemoteKey = "mesobrio" -- sua chave
 
 return KeyConfig
